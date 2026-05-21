@@ -1,3 +1,9 @@
+"
+Pre-match filter for RxbtMatcher>>searchStream:.
+Walks the Rbt* AST once at build time to determine which characters could start
+a match. canStartMatch:at: returns false only when a match is impossible — true
+is a conservative answer. Mirrors RxMatchOptimizer using the Rbt* node hierarchy.
+"
 Class {
 	#name : 'RxbtMatchOptimizer',
 	#superclass : 'Object',
