@@ -272,12 +272,13 @@ RxbtCompiler >> possessiveStar: atomBlock [
         cont value: (self consumeAll: atomBlock from: pos)]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxAny [
     | da |
     da := flags dotall.
     ^[:pos :cont |
         | str ch |
+        matcher incrementStep.
         str := matcher inputString.
         pos <= str size
             ifTrue: [
@@ -303,40 +304,42 @@ RxbtCompiler >> syntaxAtomicGroup: node [
             ifFalse: [cont value: endPos]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxBackreference: node [
     | markerIdx |
     markerIdx := node groupIndex + 1.
     ^[:pos :cont |
         | caps str start end refText sz |
+        matcher incrementStep.
         caps := matcher captures.
         str  := matcher inputString.
         (2 * markerIdx > caps size)
-            ifTrue: [ false ]
+            ifTrue: [false]
             ifFalse: [
                 start := caps at: 2 * markerIdx - 1.
                 end   := caps at: 2 * markerIdx.
-                (start isNil or: [ end isNil ])
-                    ifTrue: [ false ]
+                (start isNil or: [end isNil])
+                    ifTrue: [false]
                     ifFalse: [
                         refText := str copyFrom: start to: end - 1.
                         sz := refText size.
                         (pos + sz - 1 > str size)
-                            ifTrue: [ false ]
+                            ifTrue: [false]
                             ifFalse: [
                                 (ignoreCase
-                                    ifTrue:  [ (str copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase ]
-                                    ifFalse: [ (str copyFrom: pos to: pos + sz - 1) = refText ])
-                                    ifTrue:  [ cont value: pos + sz ]
-                                    ifFalse: [ false ] ] ] ] ]
+                                    ifTrue:  [(str copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase]
+                                    ifFalse: [(str copyFrom: pos to: pos + sz - 1) = refText])
+                                    ifTrue:  [cont value: pos + sz]
+                                    ifFalse: [false]]]]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxBeginningOfLine [
     | ml |
     ml := flags multiline.
     ^[:pos :cont |
         | str atBOL prev |
+        matcher incrementStep.
         str := matcher inputString.
         atBOL := pos = 1 or: [
             ml and: [
@@ -349,18 +352,20 @@ RxbtCompiler >> syntaxBeginningOfLine [
         atBOL ifTrue: [cont value: pos] ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxBeginningOfString [
     ^[:pos :cont |
+        matcher incrementStep.
         pos = 1
             ifTrue:  [cont value: pos]
             ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxBeginningOfWord [
     ^[:pos :cont |
         | str atWord prevWord |
+        matcher incrementStep.
         str := matcher inputString.
         atWord   := pos <= str size and: [self isWordChar: (str at: pos)].
         prevWord := pos > 1 and: [self isWordChar: (str at: pos - 1)].
@@ -380,28 +385,29 @@ RxbtCompiler >> syntaxBranch: branchNode [
             restBlock value: pos2 value: cont]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxCharSet: charSetNode [
     | f predBlock |
     f := flags.
     predBlock := charSetNode predicateIgnoringCase: f ignoreCase.
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         (pos <= str size and: [predBlock value: (str at: pos)])
             ifTrue: [cont value: pos + 1]
             ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxCharacter: charNode [
     | f ch |
     f  := flags.
     ch := charNode character.
-    (f extended and: [ch isSeparator]) ifTrue: [
-        ^[:pos :cont | cont value: pos]].
+    (f extended and: [ch isSeparator]) ifTrue: [^[:pos :cont | cont value: pos]].
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         (pos <= str size and: [
             f ignoreCase
@@ -411,12 +417,13 @@ RxbtCompiler >> syntaxCharacter: charNode [
             ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxEndOfLine [
     | ml |
     ml := flags multiline.
     ^[:pos :cont |
         | str atEOL cur |
+        matcher incrementStep.
         str := matcher inputString.
         atEOL := pos > str size or: [
             ml and: [
@@ -427,18 +434,20 @@ RxbtCompiler >> syntaxEndOfLine [
         atEOL ifTrue: [cont value: pos] ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxEndOfString [
     ^[:pos :cont |
+        matcher incrementStep.
         pos > matcher inputString size
             ifTrue:  [cont value: pos]
             ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxEndOfStringZ [
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         pos > str size
             ifTrue:  [cont value: pos]
@@ -448,10 +457,11 @@ RxbtCompiler >> syntaxEndOfStringZ [
                     ifFalse: [false]]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxEndOfWord [
     ^[:pos :cont |
         | str atWord prevWord |
+        matcher incrementStep.
         str := matcher inputString.
         atWord   := pos <= str size and: [self isWordChar: (str at: pos)].
         prevWord := pos > 1 and: [self isWordChar: (str at: pos - 1)].
@@ -463,10 +473,11 @@ RxbtCompiler >> syntaxEpsilon [
     ^[:pos :cont | cont value: pos]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxGenericNewline [
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         pos > str size
             ifTrue: [false]
@@ -544,20 +555,21 @@ RxbtCompiler >> syntaxLookbehind: node [
                 found ifTrue: [false] ifFalse: [cont value: pos]]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxMessagePredicate: node [
     | sel neg |
     sel := node selector.
     neg := node negated.
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         (pos <= str size and: [((str at: pos) perform: sel) xor: neg])
             ifTrue: [cont value: pos + 1]
             ifFalse: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxNamedBackreference: node [
     | groupNum |
     groupNum := matcher groupNames
@@ -566,6 +578,7 @@ RxbtCompiler >> syntaxNamedBackreference: node [
     groupNum isNil ifTrue: [^[:pos :cont | false]].
     ^[:pos :cont |
         | caps str start end refText sz |
+        matcher incrementStep.
         caps := matcher captures.
         str  := matcher inputString.
         (2 * groupNum > caps size)
@@ -635,10 +648,11 @@ RxbtCompiler >> syntaxNonCapturingGroup: node [
         result]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxNonWordBoundary [
     ^[:pos :cont |
         | str atWord prevWord |
+        matcher incrementStep.
         str := matcher inputString.
         atWord   := pos <= str size and: [self isWordChar: (str at: pos)].
         prevWord := pos > 1 and: [self isWordChar: (str at: pos - 1)].
@@ -668,10 +682,11 @@ RxbtCompiler >> syntaxPiece: pieceNode [
     ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxPredicate: predNode [
     ^[:pos :cont |
         | str |
+        matcher incrementStep.
         str := matcher inputString.
         (pos <= str size and: [predNode value: (str at: pos)])
             ifTrue: [cont value: pos + 1]
@@ -707,10 +722,11 @@ RxbtCompiler >> syntaxRegex: regexNode [
         result]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'compiler' }
 RxbtCompiler >> syntaxWordBoundary [
     ^[:pos :cont |
         | str atWord prevWord |
+        matcher incrementStep.
         str := matcher inputString.
         atWord   := pos <= str size and: [self isWordChar: (str at: pos)].
         prevWord := pos > 1 and: [self isWordChar: (str at: pos - 1)].

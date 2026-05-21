@@ -38,7 +38,9 @@ Class {
 		'markerCount',
 		'rootBlock',
 		'groupNames',
-		'optimizer'
+		'optimizer',
+		'stepCount',
+		'stepLimit'
 	],
 	#category : 'Regex-Backtracking-Base',
 	#package : 'Regex-Backtracking',
@@ -130,6 +132,16 @@ RxbtMatcher >> groupNames [
     ^groupNames
 ]
 
+{ #category : 'private' }
+RxbtMatcher >> incrementStep [
+    stepCount := stepCount + 1.
+    stepCount > self stepLimit ifTrue: [
+        RxbtMatchingError signal:
+            'Regex step limit exceeded (',
+            self stepLimit printString,
+            ' steps) — possible catastrophic backtracking']
+]
+
 { #category : 'initialization' }
 RxbtMatcher >> initialize: syntaxTreeRoot ignoreCase: aBoolean [
     | compiler |
@@ -141,7 +153,8 @@ RxbtMatcher >> initialize: syntaxTreeRoot ignoreCase: aBoolean [
     captures    := Array new: markerCount withAll: nil.
     optimizer   := RxbtMatchOptimizer new
                        initialize: syntaxTreeRoot
-                       ignoreCase: aBoolean
+                       ignoreCase: aBoolean.
+    stepCount   := 0
 ]
 
 { #category : 'accessing' }
@@ -262,6 +275,11 @@ RxbtMatcher >> registerGroupName: aString at: groupNumber [
     groupNames at: aString put: groupNumber
 ]
 
+{ #category : 'private' }
+RxbtMatcher >> resetStepCount [
+    stepCount := 0
+]
+
 { #category : 'matching' }
 RxbtMatcher >> search: aString [
     ^self searchStream: aString readStream
@@ -272,6 +290,7 @@ RxbtMatcher >> searchStream: aStream [
     | str startPos |
     str := aStream contents.
     inputString := str.
+    self resetStepCount.
     startPos := aStream position + 1.
     startPos to: str size + 1 do: [:pos |
         | lookahead |
@@ -299,6 +318,20 @@ RxbtMatcher >> split: aString indicesDo: aBlock [
         matchEnd = matchStart ifTrue: [Error signal: 'Regex cannot match null string'].
         lastPosition := matchEnd - 1].
     aBlock value: lastPosition + 1 value: aString size
+]
+
+{ #category : 'accessing' }
+RxbtMatcher >> stepCount [ ^stepCount
+]
+
+{ #category : 'accessing' }
+RxbtMatcher >> stepLimit [
+    ^stepLimit ifNil: [1000000]
+]
+
+{ #category : 'accessing' }
+RxbtMatcher >> stepLimit: anInteger [
+    stepLimit := anInteger
 ]
 
 { #category : 'accessing' }
