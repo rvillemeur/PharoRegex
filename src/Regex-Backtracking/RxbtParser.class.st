@@ -94,6 +94,18 @@ RxbtParser >> atom [
                             atom := self regex.
                             self match: $).
                             ^RxbtAtomicGroup new inner: atom].
+                    lookahead = $:
+                        ifTrue: [
+                            self next.
+                            atom := self regex.
+                            self match: $).
+                            ^RxbtNonCapturingGroup new inner: atom].
+                    lookahead = $<
+                        ifTrue: [
+                            self next.
+                            atom := self lookBehind.
+                            self match: $).
+                            ^atom].
                     atom := self lookAround.
                     self match: $).
                     ^atom].
@@ -220,6 +232,18 @@ RxbtParser >> lookAround [
     lookaround := RxbtLookaround with: self regex.
     lookahead = $! ifTrue: [lookaround beNegative].
     ^lookaround
+]
+
+{ #category : 'parsing' }
+RxbtParser >> lookBehind [
+    | positive node |
+    (lookahead = $= or: [lookahead = $!])
+        ifFalse: [self signalParseError: 'invalid lookbehind — expected = or !'].
+    positive := lookahead = $=.
+    self next.
+    node := RxbtLookbehind new inner: self regex.
+    positive ifFalse: [node beNegative].
+    ^node
 ]
 
 { #category : 'parsing' }

@@ -362,6 +362,35 @@ RxbtCompiler >> syntaxLookaround: node [
 ]
 
 { #category : 'syntax' }
+RxbtCompiler >> syntaxLookbehind: node [
+    | innerBlock |
+    innerBlock := node inner dispatchTo: self.
+    node positive
+        ifTrue: [
+            ^[:pos :cont |
+                | caps saved found |
+                caps := matcher captures.
+                saved := caps copy.
+                found := false.
+                1 to: pos - 1 do: [:start |
+                    found ifFalse: [
+                        found := innerBlock value: start value: [:endPos | endPos = pos]]].
+                1 to: saved size do: [:i | caps at: i put: (saved at: i)].
+                found ifTrue: [cont value: pos] ifFalse: [false]]]
+        ifFalse: [
+            ^[:pos :cont |
+                | caps saved found |
+                caps := matcher captures.
+                saved := caps copy.
+                found := false.
+                1 to: pos - 1 do: [:start |
+                    found ifFalse: [
+                        found := innerBlock value: start value: [:endPos | endPos = pos]]].
+                1 to: saved size do: [:i | caps at: i put: (saved at: i)].
+                found ifTrue: [false] ifFalse: [cont value: pos]]]
+]
+
+{ #category : 'syntax' }
 RxbtCompiler >> syntaxMessagePredicate: node [
     | sel neg |
     sel := node selector.
@@ -372,6 +401,24 @@ RxbtCompiler >> syntaxMessagePredicate: node [
         (pos <= str size and: [((str at: pos) perform: sel) xor: neg])
             ifTrue: [cont value: pos + 1]
             ifFalse: [false]]
+]
+
+{ #category : 'syntax' }
+RxbtCompiler >> syntaxNonCapturingGroup: node [
+    | altBlocks inner |
+    altBlocks := OrderedCollection new.
+    inner := node inner.
+    [inner notNil] whileTrue: [
+        altBlocks add: (inner branch dispatchTo: self).
+        inner := inner regex].
+    altBlocks size = 1 ifTrue: [^altBlocks first].
+    ^[:pos :cont |
+        | result |
+        result := false.
+        altBlocks do: [:ab |
+            result ifFalse: [
+                result := ab value: pos value: cont]].
+        result]
 ]
 
 { #category : 'syntax' }

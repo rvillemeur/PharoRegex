@@ -70,6 +70,10 @@ RxbtMatcher >> captures [
     ^captures
 ]
 
+{ #category : 'accessing' }
+RxbtMatcher >> captures: anArray [ captures := anArray
+]
+
 { #category : 'replace' }
 RxbtMatcher >> copy: aString replacingMatchesWith: replacement [
     | answer |
