@@ -371,6 +371,31 @@ RxbtMatcher >> syntaxAny [
             ifFalse: [false]]
 ]
 
+{ #category : 'building' }
+RxbtMatcher >> syntaxBackreference: node [
+    "Build a CPS block that matches the text previously captured by group node groupIndex.
+    node groupIndex is 1-based explicit group number; marker index = groupIndex + 1."
+    | markerIdx |
+    markerIdx := node groupIndex + 1.
+    ^[ :pos :cont |
+        | start end refText sz |
+        start := captures at: 2 * markerIdx - 1.
+        end   := captures at: 2 * markerIdx.
+        (start isNil or: [ end isNil ])
+            ifTrue: [ false ]
+            ifFalse: [
+                refText := inputString copyFrom: start to: end - 1.
+                sz := refText size.
+                (pos + sz - 1 > inputString size)
+                    ifTrue: [ false ]
+                    ifFalse: [
+                        (ignoreCase
+                            ifTrue:  [ (inputString copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase ]
+                            ifFalse: [ (inputString copyFrom: pos to: pos + sz - 1) = refText ])
+                            ifTrue:  [ cont value: pos + sz ]
+                            ifFalse: [ false ] ] ] ]
+]
+
 { #category : 'syntax' }
 RxbtMatcher >> syntaxBeginningOfLine [
     ^[:pos :cont |
