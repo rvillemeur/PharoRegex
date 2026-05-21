@@ -38,15 +38,19 @@ RxbtParser class >> initializeBackslashConstants [
         at: $t put: Character tab
 ]
 
-{ #category : 'initialize' }
+{ #category : 'initialization' }
 RxbtParser class >> initializeBackslashSpecials [
     (BackslashSpecials := Dictionary new)
-        at: $w put: (Association key: RxbtPredicate        value: #beWordConstituent);
-        at: $W put: (Association key: RxbtPredicate        value: #beNotWordConstituent);
-        at: $s put: (Association key: RxbtPredicate        value: #beSpace);
-        at: $S put: (Association key: RxbtPredicate        value: #beNotSpace);
-        at: $d put: (Association key: RxbtPredicate        value: #beDigit);
-        at: $D put: (Association key: RxbtPredicate        value: #beNotDigit);
+        at: $w put: (Association key: RxbtPredicate value: #beWordConstituent);
+        at: $W put: (Association key: RxbtPredicate value: #beNotWordConstituent);
+        at: $s put: (Association key: RxbtPredicate value: #beSpace);
+        at: $S put: (Association key: RxbtPredicate value: #beNotSpace);
+        at: $d put: (Association key: RxbtPredicate value: #beDigit);
+        at: $D put: (Association key: RxbtPredicate value: #beNotDigit);
+        at: $h put: (Association key: RxbtPredicate value: #beHorizontalWhitespace);
+        at: $H put: (Association key: RxbtPredicate value: #beNotHorizontalWhitespace);
+        at: $v put: (Association key: RxbtPredicate value: #beVerticalWhitespace);
+        at: $V put: (Association key: RxbtPredicate value: #beNotVerticalWhitespace);
         at: $b put: (Association key: RxbtContextCondition value: #beWordBoundary);
         at: $B put: (Association key: RxbtContextCondition value: #beNonWordBoundary);
         at: $< put: (Association key: RxbtContextCondition value: #beBeginningOfWord);
@@ -142,6 +146,10 @@ RxbtParser >> atom [
                     self next.
                     ^atom].
             self ifSpecial: lookahead then: [:node | self next. ^node].
+            lookahead = $A ifTrue: [self next. ^RxbtContextCondition new beBeginningOfString].
+            lookahead = $z ifTrue: [self next. ^RxbtContextCondition new beEndOfString].
+            lookahead = $Z ifTrue: [self next. ^RxbtContextCondition new beEndOfStringZ].
+            lookahead = $R ifTrue: [self next. ^RxbtGenericNewline new].
             lookahead = $k ifTrue: [
                 self next.
                 lookahead = $< ifTrue: [

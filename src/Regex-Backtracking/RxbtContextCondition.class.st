@@ -23,6 +23,11 @@ RxbtContextCondition >> beBeginningOfLine [
 ]
 
 { #category : 'initialize' }
+RxbtContextCondition >> beBeginningOfString [
+    kind := #syntaxBeginningOfString
+]
+
+{ #category : 'initialize' }
 RxbtContextCondition >> beBeginningOfWord [
     kind := #syntaxBeginningOfWord
 ]
@@ -30,6 +35,16 @@ RxbtContextCondition >> beBeginningOfWord [
 { #category : 'initialize' }
 RxbtContextCondition >> beEndOfLine [
     kind := #syntaxEndOfLine
+]
+
+{ #category : 'initialize' }
+RxbtContextCondition >> beEndOfString [
+    kind := #syntaxEndOfString
+]
+
+{ #category : 'initialize' }
+RxbtContextCondition >> beEndOfStringZ [
+    kind := #syntaxEndOfStringZ
 ]
 
 { #category : 'initialize' }

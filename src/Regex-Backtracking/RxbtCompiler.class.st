@@ -269,6 +269,14 @@ RxbtCompiler >> syntaxBeginningOfLine [
 ]
 
 { #category : 'syntax' }
+RxbtCompiler >> syntaxBeginningOfString [
+    ^[:pos :cont |
+        pos = 1
+            ifTrue:  [cont value: pos]
+            ifFalse: [false]]
+]
+
+{ #category : 'syntax' }
 RxbtCompiler >> syntaxBeginningOfWord [
     ^[:pos :cont |
         | str atWord prevWord |
@@ -330,6 +338,27 @@ RxbtCompiler >> syntaxEndOfLine [
 ]
 
 { #category : 'syntax' }
+RxbtCompiler >> syntaxEndOfString [
+    ^[:pos :cont |
+        pos > matcher inputString size
+            ifTrue:  [cont value: pos]
+            ifFalse: [false]]
+]
+
+{ #category : 'syntax' }
+RxbtCompiler >> syntaxEndOfStringZ [
+    ^[:pos :cont |
+        | str |
+        str := matcher inputString.
+        pos > str size
+            ifTrue:  [cont value: pos]
+            ifFalse: [
+                (pos = str size and: [(str at: pos) = (Character value: 10)])
+                    ifTrue:  [cont value: pos + 1]
+                    ifFalse: [false]]]
+]
+
+{ #category : 'syntax' }
 RxbtCompiler >> syntaxEndOfWord [
     ^[:pos :cont |
         | str atWord prevWord |
@@ -342,6 +371,24 @@ RxbtCompiler >> syntaxEndOfWord [
 { #category : 'syntax' }
 RxbtCompiler >> syntaxEpsilon [
     ^[:pos :cont | cont value: pos]
+]
+
+{ #category : 'syntax' }
+RxbtCompiler >> syntaxGenericNewline [
+    ^[:pos :cont |
+        | str |
+        str := matcher inputString.
+        pos > str size
+            ifTrue: [false]
+            ifFalse: [
+                (pos < str size
+                    and: [(str at: pos) = (Character value: 13)
+                    and: [(str at: pos + 1) = (Character value: 10)]])
+                    ifTrue: [cont value: pos + 2]
+                    ifFalse: [
+                        (#(10 11 12 13 133) anySatisfy: [:b | (str at: pos) = (Character value: b)])
+                            ifTrue:  [cont value: pos + 1]
+                            ifFalse: [false]]]]
 ]
 
 { #category : 'syntax' }

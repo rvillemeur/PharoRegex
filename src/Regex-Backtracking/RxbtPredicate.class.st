@@ -111,6 +111,14 @@ RxbtPredicate >> beHexDigit [
 ]
 
 { #category : 'initialize' }
+RxbtPredicate >> beHorizontalWhitespace [
+    | pred |
+    pred := [:c | c = (Character value: 32) or: [c = (Character value: 9) or: [c = (Character value: 160)]]].
+    predicate := pred.
+    negation  := [:c | (pred value: c) not]
+]
+
+{ #category : 'initialize' }
 RxbtPredicate >> beLowercase [
     predicate := [:c | c isLowercase].
     negation  := [:c | c isLowercase not]
@@ -122,8 +130,18 @@ RxbtPredicate >> beNotDigit [
 ]
 
 { #category : 'initialize' }
+RxbtPredicate >> beNotHorizontalWhitespace [
+    self beHorizontalWhitespace; negate
+]
+
+{ #category : 'initialize' }
 RxbtPredicate >> beNotSpace [ 
     self beSpace; negate
+]
+
+{ #category : 'initialize' }
+RxbtPredicate >> beNotVerticalWhitespace [
+    self beVerticalWhitespace; negate
 ]
 
 { #category : 'initialize' }
@@ -154,6 +172,14 @@ RxbtPredicate >> beSpace [
 RxbtPredicate >> beUppercase [
     predicate := [:c | c isUppercase].
     negation  := [:c | c isUppercase not]
+]
+
+{ #category : 'initialize' }
+RxbtPredicate >> beVerticalWhitespace [
+    | pred |
+    pred := [:c | #(10 11 12 13 133) anySatisfy: [:v | c = (Character value: v)]].
+    predicate := pred.
+    negation  := [:c | (pred value: c) not]
 ]
 
 { #category : 'initialize' }
