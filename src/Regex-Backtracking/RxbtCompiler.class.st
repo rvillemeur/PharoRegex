@@ -10,8 +10,9 @@ Class {
 		'markerCount',
 		'groupMap'
 	],
-	#category : 'Regex-Backtracking',
-	#package : 'Regex-Backtracking'
+	#category : 'Regex-Backtracking-Base',
+	#package : 'Regex-Backtracking',
+	#tag : 'Base'
 }
 
 { #category : 'instance creation' }

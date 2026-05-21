@@ -38,8 +38,9 @@ Class {
 		'markerCount',
 		'rootBlock'
 	],
-	#category : 'Regex-Backtracking',
-	#package : 'Regex-Backtracking'
+	#category : 'Regex-Backtracking-Base',
+	#package : 'Regex-Backtracking',
+	#tag : 'Base'
 }
 
 { #category : 'instance creation' }
@@ -60,7 +61,7 @@ RxbtMatcher class >> forString: aString [
 { #category : 'instance creation' }
 RxbtMatcher class >> forString: aString ignoreCase: aBoolean [
     | tree |
-    tree := RxParser safelyParse: aString.
+    tree := RxbtParser safelyParse: aString.
     ^tree ifNotNil: [self for: tree ignoreCase: aBoolean]
 ]
 
