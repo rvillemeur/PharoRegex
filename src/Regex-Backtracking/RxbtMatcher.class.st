@@ -138,6 +138,58 @@ RxbtMatcher >> isWordChar: aChar [
     ^aChar isLetter or: [aChar isDigit or: [aChar = $_]]
 ]
 
+{ #category : 'building' }
+RxbtMatcher >> lazyOptional: atomBlock [
+    "Return a CPS block matching zero or one occurrence, lazy (zero first)."
+    ^[ :pos :cont |
+        (cont value: pos) ifTrue: [ true ] ifFalse: [ atomBlock value: pos value: cont ] ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> lazyPlus: atomBlock [
+    "Return a CPS block matching one or more repetitions, lazy (fewest first)."
+    ^[ :pos :cont |
+        atomBlock value: pos value: [ :pos2 |
+            self matchLazyStar: atomBlock from: pos2 continuation: cont ] ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> lazyRepeat: atomBlock min: minN max: maxN [
+    "Return a CPS block for lazy {minN,maxN} — fewest matches first."
+    ^[ :pos :cont |
+        self matchLazyRepeat: atomBlock from: pos count: 0
+             min: minN max: maxN continuation: cont ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> lazyStar: atomBlock [
+    "Return a CPS block matching zero or more repetitions, lazy (fewest first)."
+    ^[ :pos :cont | self matchLazyStar: atomBlock from: pos continuation: cont ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> matchLazyRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
+    "Recursive lazy {n,m}: try continuation as soon as minimum is reached."
+    n >= minN ifTrue: [
+        (cont value: pos) ifTrue: [ ^true ] ].
+    (maxN notNil and: [ n >= maxN ]) ifTrue: [ ^false ].
+    ^atomBlock value: pos value: [ :newPos |
+        newPos = pos
+            ifTrue:  [ false ]
+            ifFalse: [ self matchLazyRepeat: atomBlock from: newPos count: n + 1
+                            min: minN max: maxN continuation: cont ] ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> matchLazyStar: atomBlock from: pos continuation: cont [
+    "Try zero matches first (lazy). Expand by one on continuation failure."
+    (cont value: pos) ifTrue: [ ^true ].
+    ^atomBlock value: pos value: [ :newPos |
+        newPos = pos
+            ifTrue:  [ false ]
+            ifFalse: [ self matchLazyStar: atomBlock from: newPos continuation: cont ] ]
+]
+
 { #category : 'matching' }
 RxbtMatcher >> matchRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
     | result |
@@ -439,15 +491,23 @@ RxbtMatcher >> syntaxNonWordBoundary [
         (atWord xor: prevWord) ifFalse: [cont value: pos] ifTrue: [false]]
 ]
 
-{ #category : 'syntax' }
+{ #category : 'building' }
 RxbtMatcher >> syntaxPiece: pieceNode [
+    "Dispatch to greedy or lazy CPS helpers based on pieceNode isLazy."
     | atomBlock |
     atomBlock := pieceNode atom dispatchTo: self.
-    pieceNode isSingular ifTrue: [^atomBlock].
-    pieceNode isStar     ifTrue: [^self greedyStar: atomBlock].
-    pieceNode isPlus     ifTrue: [^self greedyPlus: atomBlock].
-    pieceNode isOptional ifTrue: [^self greedyOptional: atomBlock].
-    ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max
+    pieceNode isSingular ifTrue: [ ^atomBlock ].
+    pieceNode isLazy
+        ifTrue: [
+            pieceNode isStar     ifTrue: [ ^self lazyStar: atomBlock ].
+            pieceNode isPlus     ifTrue: [ ^self lazyPlus: atomBlock ].
+            pieceNode isOptional ifTrue: [ ^self lazyOptional: atomBlock ].
+            ^self lazyRepeat: atomBlock min: pieceNode min max: pieceNode max ]
+        ifFalse: [
+            pieceNode isStar     ifTrue: [ ^self greedyStar: atomBlock ].
+            pieceNode isPlus     ifTrue: [ ^self greedyPlus: atomBlock ].
+            pieceNode isOptional ifTrue: [ ^self greedyOptional: atomBlock ].
+            ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max ]
 ]
 
 { #category : 'syntax' }
