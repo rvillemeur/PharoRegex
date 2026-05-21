@@ -37,7 +37,8 @@ Class {
 		'captures',
 		'markerCount',
 		'rootBlock',
-		'groupNames'
+		'groupNames',
+		'optimizer'
 	],
 	#category : 'Regex-Backtracking-Base',
 	#package : 'Regex-Backtracking',
@@ -129,15 +130,18 @@ RxbtMatcher >> groupNames [
     ^groupNames
 ]
 
-{ #category : 'initialize' }
+{ #category : 'initialization' }
 RxbtMatcher >> initialize: syntaxTreeRoot ignoreCase: aBoolean [
     | compiler |
-    ignoreCase := aBoolean.
-    groupNames := nil.
-    compiler := RxbtCompiler for: self ignoreCase: aBoolean.
-    rootBlock := compiler compile: syntaxTreeRoot.
+    ignoreCase  := aBoolean.
+    groupNames  := nil.
+    compiler    := RxbtCompiler for: self ignoreCase: aBoolean.
+    rootBlock   := compiler compile: syntaxTreeRoot.
     markerCount := compiler markerCount.
-    captures := Array new: markerCount withAll: nil
+    captures    := Array new: markerCount withAll: nil.
+    optimizer   := RxbtMatchOptimizer new
+                       initialize: syntaxTreeRoot
+                       ignoreCase: aBoolean
 ]
 
 { #category : 'accessing' }
@@ -270,9 +274,16 @@ RxbtMatcher >> searchStream: aStream [
     inputString := str.
     startPos := aStream position + 1.
     startPos to: str size + 1 do: [:pos |
-        captures := Array new: markerCount withAll: nil.
-        (rootBlock value: pos value: [:endPos | true])
-            ifTrue: [aStream position: (captures at: 2) - 1. ^true]].
+        | lookahead |
+        lookahead := pos <= str size
+            ifTrue:  [str at: pos]
+            ifFalse: [nil].
+        (optimizer canStartMatch: lookahead at: pos) ifTrue: [
+            captures := Array new: markerCount withAll: nil.
+            (rootBlock value: pos value: [:endPos |
+                aStream position: (captures at: 2) - 1.
+                true])
+                ifTrue: [^true]]].
     ^false
 ]
 

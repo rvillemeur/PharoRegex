@@ -5,8 +5,9 @@ backreferences \k<name> in RxbtMatcher.
 Class {
 	#name : 'RxbtNamedCaptureTest',
 	#superclass : 'TestCase',
-	#category : 'Regex-Backtracking-Tests',
-	#package : 'Regex-Backtracking-Tests'
+	#category : 'Regex-Backtracking-Tests-Tests',
+	#package : 'Regex-Backtracking-Tests',
+	#tag : 'Tests'
 }
 
 { #category : 'tests' }

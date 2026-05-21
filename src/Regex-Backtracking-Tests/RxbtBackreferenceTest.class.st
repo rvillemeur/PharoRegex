@@ -4,8 +4,9 @@ Tests for backreferences in RxbtMatcher. Verifies that \1..\9 match the text cap
 Class {
 	#name : 'RxbtBackreferenceTest',
 	#superclass : 'TestCase',
-	#category : 'Regex-Backtracking-Tests',
-	#package : 'Regex-Backtracking-Tests'
+	#category : 'Regex-Backtracking-Tests-Tests',
+	#package : 'Regex-Backtracking-Tests',
+	#tag : 'Tests'
 }
 
 { #category : 'tests' }

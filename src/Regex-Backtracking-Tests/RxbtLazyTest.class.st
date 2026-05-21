@@ -4,8 +4,9 @@ Tests for lazy (non-greedy) quantifiers in RxbtMatcher: *?, +?, ??, {n,m}?. Each
 Class {
 	#name : 'RxbtLazyTest',
 	#superclass : 'TestCase',
-	#category : 'Regex-Backtracking-Tests',
-	#package : 'Regex-Backtracking-Tests'
+	#category : 'Regex-Backtracking-Tests-Tests',
+	#package : 'Regex-Backtracking-Tests',
+	#tag : 'Tests'
 }
 
 { #category : 'private' }
