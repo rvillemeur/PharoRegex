@@ -8,7 +8,8 @@ Class {
 		'matcher',
 		'ignoreCase',
 		'markerCount',
-		'groupMap'
+		'groupMap',
+		'flags'
 	],
 	#category : 'Regex-Backtracking-Base',
 	#package : 'Regex-Backtracking',
@@ -44,6 +45,11 @@ RxbtCompiler >> consumeAll: atomBlock from: pos [
     ^cur
 ]
 
+{ #category : 'accessing' }
+RxbtCompiler >> flags [
+    ^flags
+]
+
 { #category : 'cps-greedy' }
 RxbtCompiler >> greedyOptional: atomBlock [
     ^[:pos :cont |
@@ -71,10 +77,13 @@ RxbtCompiler >> greedyStar: atomBlock [
 
 { #category : 'initialize' }
 RxbtCompiler >> initializeFor: aMatcher ignoreCase: aBoolean [
-    matcher := aMatcher.
-    ignoreCase := aBoolean.
+    matcher     := aMatcher.
+    ignoreCase  := aBoolean.
     markerCount := 0.
-    groupMap := IdentityDictionary new
+    groupMap    := IdentityDictionary new.
+    flags       := aBoolean
+        ifTrue:  [RxbtFlags caseInsensitive]
+        ifFalse: [RxbtFlags default]
 ]
 
 { #category : 'private' }
@@ -203,11 +212,17 @@ RxbtCompiler >> possessiveStar: atomBlock [
 
 { #category : 'syntax' }
 RxbtCompiler >> syntaxAny [
+    | da |
+    da := flags dotall.
     ^[:pos :cont |
-        | str |
+        | str ch |
         str := matcher inputString.
-        (pos <= str size and: [(str at: pos) asInteger ~= 0])
-            ifTrue:  [cont value: pos + 1]
+        pos <= str size
+            ifTrue: [
+                ch := str at: pos.
+                (ch asInteger ~= 0 and: [da or: [ch asInteger ~= 10]])
+                    ifTrue:  [cont value: pos + 1]
+                    ifFalse: [false]]
             ifFalse: [false]]
 ]
 
@@ -256,15 +271,19 @@ RxbtCompiler >> syntaxBackreference: node [
 
 { #category : 'syntax' }
 RxbtCompiler >> syntaxBeginningOfLine [
+    | ml |
+    ml := flags multiline.
     ^[:pos :cont |
         | str atBOL prev |
         str := matcher inputString.
         atBOL := pos = 1 or: [
-            prev := str at: pos - 1.
-            prev = (Character value: 10) or: [
-                prev = (Character value: 13) and: [
-                    pos > str size or: [
-                        (str at: pos) ~= (Character value: 10)]]]].
+            ml and: [
+                pos > 1 and: [
+                    prev := str at: pos - 1.
+                    prev = (Character value: 10) or: [
+                        prev = (Character value: 13) and: [
+                            pos > str size or: [
+                                (str at: pos) ~= (Character value: 10)]]]]]].
         atBOL ifTrue: [cont value: pos] ifFalse: [false]]
 ]
 
@@ -301,8 +320,9 @@ RxbtCompiler >> syntaxBranch: branchNode [
 
 { #category : 'syntax' }
 RxbtCompiler >> syntaxCharSet: charSetNode [
-    | predBlock |
-    predBlock := charSetNode predicateIgnoringCase: ignoreCase.
+    | f predBlock |
+    f := flags.
+    predBlock := charSetNode predicateIgnoringCase: f ignoreCase.
     ^[:pos :cont |
         | str |
         str := matcher inputString.
@@ -313,27 +333,35 @@ RxbtCompiler >> syntaxCharSet: charSetNode [
 
 { #category : 'syntax' }
 RxbtCompiler >> syntaxCharacter: charNode [
+    | f ch |
+    f  := flags.
+    ch := charNode character.
+    (f extended and: [ch isSeparator]) ifTrue: [
+        ^[:pos :cont | cont value: pos]].
     ^[:pos :cont |
         | str |
         str := matcher inputString.
         (pos <= str size and: [
-            ignoreCase
-                ifTrue:  [(str at: pos) asLowercase = charNode character asLowercase]
-                ifFalse: [(str at: pos) = charNode character]])
+            f ignoreCase
+                ifTrue:  [(str at: pos) asLowercase = ch asLowercase]
+                ifFalse: [(str at: pos) = ch]])
             ifTrue: [cont value: pos + 1]
             ifFalse: [false]]
 ]
 
 { #category : 'syntax' }
 RxbtCompiler >> syntaxEndOfLine [
+    | ml |
+    ml := flags multiline.
     ^[:pos :cont |
         | str atEOL cur |
         str := matcher inputString.
         atEOL := pos > str size or: [
-            cur := str at: pos.
-            cur = (Character value: 13) or: [
-                cur = (Character value: 10) and: [
-                    pos = 1 or: [(str at: pos - 1) ~= (Character value: 13)]]]].
+            ml and: [
+                cur := str at: pos.
+                cur = (Character value: 13) or: [
+                    cur = (Character value: 10) and: [
+                        pos = 1 or: [(str at: pos - 1) ~= (Character value: 13)]]]]].
         atEOL ifTrue: [cont value: pos] ifFalse: [false]]
 ]
 
@@ -389,6 +417,23 @@ RxbtCompiler >> syntaxGenericNewline [
                         (#(10 11 12 13 133) anySatisfy: [:b | (str at: pos) = (Character value: b)])
                             ifTrue:  [cont value: pos + 1]
                             ifFalse: [false]]]]
+]
+
+{ #category : 'syntax' }
+RxbtCompiler >> syntaxInlineModifier: node [
+    | savedFlags newFlags |
+    savedFlags := flags.
+    newFlags   := flags applySet: node setFlags clear: node clearFlags.
+    node isScoped
+        ifTrue: [
+            | innerBlock |
+            flags := newFlags.
+            innerBlock := node inner dispatchTo: self.
+            flags := savedFlags.
+            ^innerBlock]
+        ifFalse: [
+            flags := newFlags.
+            ^[:pos :cont | cont value: pos]]
 ]
 
 { #category : 'syntax' }

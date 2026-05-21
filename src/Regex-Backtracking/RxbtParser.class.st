@@ -115,6 +115,11 @@ RxbtParser >> atom [
                             atom := self namedCapture.
                             self match: $).
                             ^atom].
+                    (lookahead = $- or: [lookahead notNil and: ['imsxIMSX' includes: lookahead]])
+                        ifTrue: [
+                            atom := self inlineModifier.
+                            self match: $).
+                            ^atom].
                     atom := self lookAround.
                     self match: $).
                     ^atom].
@@ -208,6 +213,28 @@ RxbtParser >> ifSpecial: aChar then: aBlock [
     | pair |
     pair := BackslashSpecials at: aChar ifAbsent: [^self].
     ^aBlock value: (pair key new perform: pair value)
+]
+
+{ #category : 'parsing' }
+RxbtParser >> inlineModifier [
+    | setFlags clearFlags node |
+    setFlags   := WriteStream on: String new.
+    clearFlags := WriteStream on: String new.
+    [lookahead notNil and: ['imsxIMSX' includes: lookahead]] whileTrue: [
+        setFlags nextPut: lookahead asLowercase.
+        self next].
+    lookahead = $- ifTrue: [
+        self next.
+        [lookahead notNil and: ['imsxIMSX' includes: lookahead]] whileTrue: [
+            clearFlags nextPut: lookahead asLowercase.
+            self next]].
+    node := RxbtInlineModifier new
+        setFlags:   setFlags contents
+        clearFlags: clearFlags contents.
+    lookahead = $: ifTrue: [
+        self next.
+        node inner: self regex].
+    ^node
 ]
 
 { #category : 'parsing' }
