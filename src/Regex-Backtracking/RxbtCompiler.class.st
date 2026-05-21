@@ -121,50 +121,112 @@ RxbtCompiler >> markerCount [
     ^markerCount
 ]
 
-{ #category : 'cps-lazy' }
-RxbtCompiler >> matchLazyRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
-    n >= minN ifTrue: [
-        (cont value: pos) ifTrue: [^true]].
-    (maxN notNil and: [n >= maxN]) ifTrue: [^false].
-    ^atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [false]
-            ifFalse: [self matchLazyRepeat: atomBlock from: newPos count: n + 1
-                           min: minN max: maxN continuation: cont]]
+{ #category : 'private' }
+RxbtCompiler >> matchLazyRepeat: atomBlock from: startPos count: startN min: minN max: maxN continuation: cont [
+    | cur n prevCur next result |
+    cur := startPos.
+    n := startN.
+    prevCur := nil.
+    [n >= minN ifTrue: [
+         result := prevCur isNil
+             ifTrue:  [cont value: cur]
+             ifFalse: [
+                 atomBlock value: prevCur value: [:np |
+                     np = cur ifTrue: [cont value: cur] ifFalse: [false]]].
+         result ifTrue: [^true]].
+     (maxN notNil and: [n >= maxN]) ifTrue: [^false].
+     next := nil.
+     atomBlock value: cur value: [:np |
+         np > cur ifTrue: [next := np].
+         false].
+     next isNil ifTrue: [^false].
+     prevCur := cur.
+     cur := next.
+     n := n + 1.
+     true] repeat
 ]
 
-{ #category : 'cps-lazy' }
-RxbtCompiler >> matchLazyStar: atomBlock from: pos continuation: cont [
-    (cont value: pos) ifTrue: [^true].
-    ^atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [false]
-            ifFalse: [self matchLazyStar: atomBlock from: newPos continuation: cont]]
+{ #category : 'private' }
+RxbtCompiler >> matchLazyStar: atomBlock from: startPos continuation: cont [
+    | cur prevCur next result |
+    cur := startPos.
+    prevCur := nil.
+    [result := prevCur isNil
+        ifTrue:  [cont value: cur]
+        ifFalse: [
+            atomBlock value: prevCur value: [:np |
+                np = cur ifTrue: [cont value: cur] ifFalse: [false]]].
+     result ifTrue: [^true].
+     next := nil.
+     atomBlock value: cur value: [:np |
+         np > cur ifTrue: [next := np].
+         false].
+     next isNil ifTrue: [^false].
+     prevCur := cur.
+     cur := next.
+     true] repeat
 ]
 
-{ #category : 'cps-greedy' }
-RxbtCompiler >> matchRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
-    | result |
-    (maxN notNil and: [n >= maxN]) ifTrue: [
-        ^n >= minN ifTrue: [cont value: pos] ifFalse: [false]].
-    result := atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [n >= minN ifTrue: [cont value: newPos] ifFalse: [false]]
-            ifFalse: [self matchRepeat: atomBlock from: newPos count: n + 1
-                          min: minN max: maxN continuation: cont]].
-    (result not and: [n >= minN]) ifTrue: [^cont value: pos].
-    ^result
+{ #category : 'private' }
+RxbtCompiler >> matchRepeat: atomBlock from: startPos count: startN min: minN max: maxN continuation: cont [
+    | positions cur n next |
+    positions := OrderedCollection with: startPos -> startN.
+    cur := startPos.
+    n := startN.
+    [(maxN notNil and: [n >= maxN])
+        ifTrue: [next := nil]
+        ifFalse: [
+            next := nil.
+            atomBlock value: cur value: [:newPos |
+                newPos > cur ifTrue: [next := newPos].
+                false]].
+     next notNil] whileTrue: [
+        n := n + 1.
+        cur := next.
+        positions add: cur -> n].
+    positions size to: 1 by: -1 do: [:i |
+        | assoc pos count |
+        assoc := positions at: i.
+        pos := assoc key.
+        count := assoc value.
+        count >= minN ifTrue: [
+            i = 1
+                ifTrue: [
+                    (cont value: pos) ifTrue: [^true]]
+                ifFalse: [
+                    | prevPos |
+                    prevPos := (positions at: i - 1) key.
+                    (atomBlock value: prevPos value: [:np |
+                        np = pos ifTrue: [cont value: pos] ifFalse: [false]])
+                        ifTrue: [^true]]]].
+    ^false
 ]
 
-{ #category : 'cps-greedy' }
-RxbtCompiler >> matchStar: atomBlock from: pos continuation: cont [
-    | result |
-    result := atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [cont value: newPos]
-            ifFalse: [self matchStar: atomBlock from: newPos continuation: cont]].
-    result ifFalse: [^cont value: pos].
-    ^result
+{ #category : 'private' }
+RxbtCompiler >> matchStar: atomBlock from: startPos continuation: cont [
+    | positions cur next |
+    positions := OrderedCollection with: startPos.
+    cur := startPos.
+    [next := nil.
+     atomBlock value: cur value: [:newPos |
+         newPos > cur ifTrue: [next := newPos].
+         false].
+     next notNil] whileTrue: [
+        cur := next.
+        positions add: cur].
+    positions size to: 1 by: -1 do: [:i |
+        | pos |
+        pos := positions at: i.
+        i = 1
+            ifTrue: [
+                (cont value: pos) ifTrue: [^true]]
+            ifFalse: [
+                | prevPos |
+                prevPos := positions at: i - 1.
+                (atomBlock value: prevPos value: [:np |
+                    np = pos ifTrue: [cont value: pos] ifFalse: [false]])
+                    ifTrue: [^true]]].
+    ^false
 ]
 
 { #category : 'cps-possessive' }
