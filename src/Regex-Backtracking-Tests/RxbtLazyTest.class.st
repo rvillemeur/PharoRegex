@@ -24,7 +24,7 @@ RxbtLazyTest >> testLazyNested [
     | m |
     m := RxbtMatcher forString: '<[^>]+>.*?</[^>]+>'.
     self assert: (m search: '<b>hello</b> world <i>there</i>').
-    self assert: (m subexpression: 1) = '<b>hello</b>'
+    self assert: (m subexpression: 1) equals: '<b>hello</b>'
 ]
 
 { #category : 'tests' }
@@ -39,8 +39,8 @@ RxbtLazyTest >> testLazyOptional [
 { #category : 'tests' }
 RxbtLazyTest >> testLazyPlus [
     ".+? takes exactly one character when possible."
-    self assert: (self matchFirst: '.+?' in: 'abc') = 'a'.
-    self assert: (self matchFirst: 'a.+?b' in: 'aXYb') = 'aXYb'
+    self assert: (self matchFirst: '.+?' in: 'abc') equals: 'a'.
+    self assert: (self matchFirst: 'a.+?b' in: 'aXYb') equals: 'aXYb'
 ]
 
 { #category : 'tests' }
@@ -56,8 +56,8 @@ RxbtLazyTest >> testLazyQuantifiedAtom [
 { #category : 'tests' }
 RxbtLazyTest >> testLazyStar [
     ".*? takes as few characters as possible."
-    self assert: (self matchFirst: '.*?' in: 'abc') = ''.
-    self assert: (self matchFirst: 'a.*?b' in: 'aXbYb') = 'aXb'
+    self assert: (self matchFirst: '.*?' in: 'abc') equals: ''.
+    self assert: (self matchFirst: 'a.*?b' in: 'aXbYb') equals: 'aXb'
 ]
 
 { #category : 'tests' }
@@ -67,7 +67,7 @@ RxbtLazyTest >> testLazyVsGreedy [
     greedy := RxbtMatcher forString: '<.+>'.
     lazy   := RxbtMatcher forString: '<.+?>'.
     greedy search: '<a><b>'.
-    self assert: (greedy subexpression: 1) = '<a><b>'.
+    self assert: (greedy subexpression: 1) equals: '<a><b>'.
     lazy search: '<a><b>'.
-    self assert: (lazy subexpression: 1) = '<a>'
+    self assert: (lazy subexpression: 1) equals: '<a>'
 ]

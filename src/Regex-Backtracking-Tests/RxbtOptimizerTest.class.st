@@ -28,7 +28,7 @@ RxbtOptimizerTest >> testCharSetPrefix [
     | m |
     m := RxbtMatcher forString: '[\de]+'.
     self assert: (m search: 'zzz01234').
-    self assert: (m subexpression: 1) = '01234'
+    self assert: (m subexpression: 1) equals: '01234'
 ]
 
 { #category : 'tests' }
@@ -36,7 +36,7 @@ RxbtOptimizerTest >> testLiteralPrefixSkip [
     | m |
     m := RxbtMatcher forString: 'foo'.
     self assert: (m search: 'xxxfooyyy').
-    self assert: (m subexpression: 1) = 'foo'
+    self assert: (m subexpression: 1) equals: 'foo'
 ]
 
 { #category : 'tests' }
@@ -60,5 +60,5 @@ RxbtOptimizerTest >> testPredicatePrefix [
     | m |
     m := RxbtMatcher forString: '\d+'.
     self assert: (m search: 'abc123def').
-    self assert: (m subexpression: 1) = '123'
+    self assert: (m subexpression: 1) equals: '123'
 ]

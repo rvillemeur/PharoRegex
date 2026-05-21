@@ -11,7 +11,7 @@ RxbtQuickWinsTest >> testInlineCommentAtStart [
     | m |
     m := RxbtMatcher forString: '(?#skip)\d+'.
     self assert: (m search: 'abc123').
-    self assert: (m subexpression: 1) = '123'
+    self assert: (m subexpression: 1) equals: '123'
 ]
 
 { #category : 'tests' }
@@ -33,7 +33,7 @@ RxbtQuickWinsTest >> testKeepStartBasic [
     | m |
     m := RxbtMatcher forString: 'foo\Kbar'.
     self assert: (m search: 'foobar').
-    self assert: (m subexpression: 1) = 'bar'
+    self assert: (m subexpression: 1) equals: 'bar'
 ]
 
 { #category : 'tests' }
@@ -49,7 +49,7 @@ RxbtQuickWinsTest >> testKeepStartWithSearch [
     | m |
     m := RxbtMatcher forString: 'prefix_\K\w+'.
     self assert: (m search: 'prefix_hello').
-    self assert: (m subexpression: 1) = 'hello'
+    self assert: (m subexpression: 1) equals: 'hello'
 ]
 
 { #category : 'tests' }

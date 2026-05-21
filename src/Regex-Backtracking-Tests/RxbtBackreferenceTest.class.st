@@ -50,8 +50,8 @@ RxbtBackreferenceTest >> testDoubledWord [
     | m |
     m := RxbtMatcher forString: '\b(\w+)\s+\1\b'.
     self assert: (m search: 'the the quick fox').
-    self assert: (m subexpression: 1) = 'the the'.
-    self assert: (m subexpression: 2) = 'the'.
+    self assert: (m subexpression: 1) equals: 'the the'.
+    self assert: (m subexpression: 2) equals: 'the'.
     self deny: (m search: 'the quick brown fox')
 ]
 

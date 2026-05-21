@@ -30,7 +30,7 @@ RxbtStackDepthTest >> testLazyBacktrack [
     | m |
     m := RxbtMatcher forString: 'a*?b'.
     self assert: (m search: 'aaab').
-    self assert: (m subexpression: 1) = 'aaab'
+    self assert: (m subexpression: 1) equals: 'aaab'
 ]
 
 { #category : 'tests' }
