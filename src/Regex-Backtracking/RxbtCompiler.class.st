@@ -233,21 +233,24 @@ RxbtCompiler >> syntaxBackreference: node [
         | caps str start end refText sz |
         caps := matcher captures.
         str  := matcher inputString.
-        start := caps at: 2 * markerIdx - 1.
-        end   := caps at: 2 * markerIdx.
-        (start isNil or: [end isNil])
-            ifTrue: [false]
+        (2 * markerIdx > caps size)
+            ifTrue: [ false ]
             ifFalse: [
-                refText := str copyFrom: start to: end - 1.
-                sz := refText size.
-                (pos + sz - 1 > str size)
-                    ifTrue: [false]
+                start := caps at: 2 * markerIdx - 1.
+                end   := caps at: 2 * markerIdx.
+                (start isNil or: [ end isNil ])
+                    ifTrue: [ false ]
                     ifFalse: [
-                        (ignoreCase
-                            ifTrue:  [(str copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase]
-                            ifFalse: [(str copyFrom: pos to: pos + sz - 1) = refText])
-                            ifTrue:  [cont value: pos + sz]
-                            ifFalse: [false]]]]
+                        refText := str copyFrom: start to: end - 1.
+                        sz := refText size.
+                        (pos + sz - 1 > str size)
+                            ifTrue: [ false ]
+                            ifFalse: [
+                                (ignoreCase
+                                    ifTrue:  [ (str copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase ]
+                                    ifFalse: [ (str copyFrom: pos to: pos + sz - 1) = refText ])
+                                    ifTrue:  [ cont value: pos + sz ]
+                                    ifFalse: [ false ] ] ] ] ]
 ]
 
 { #category : 'syntax' }

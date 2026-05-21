@@ -63,6 +63,14 @@ RxbtBackreferenceTest >> testMultipleBackreferences [
 ]
 
 { #category : 'tests' }
+RxbtBackreferenceTest >> testOutOfRangeBackreference [
+    "Backreference to group that does not exist in the pattern returns false, not an error."
+    | m |
+    m := RxbtMatcher forString: '(a)\5'.
+    self deny: (m matches: 'aa')
+]
+
+{ #category : 'tests' }
 RxbtBackreferenceTest >> testSimpleBackreference [
     self assert: ((RxbtMatcher forString: '(a+)\1') matches: 'aaaa').
     self deny:   ((RxbtMatcher forString: '(a+)\1') matches: 'aaa').
