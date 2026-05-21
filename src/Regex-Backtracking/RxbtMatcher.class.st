@@ -1,3 +1,33 @@
+"
+Drop-in backtracking replacement for RxMatcher. Provides the same public API but uses a CPS (continuation-passing style) engine that supports true backtracking, lazy quantifiers (*? +? ?? {n,m}?), backreferences (\1..\9), possessive quantifiers (*+ ++ ?+ {n,m}+), and atomic groups (?>...).
+
+## Responsibilities
+- Public API: create matchers, run matches, expose capture groups.
+- Hold runtime state: inputString (current subject), captures (1-based marker array), markerCount, rootBlock.
+- Delegate ALL compilation to RxbtCompiler, which visits the AST and builds the CPS closure tree.
+
+## Creation
+  RxbtMatcher forString: 'a+'
+  RxbtMatcher forString: 'a+' ignoreCase: true
+  RxbtMatcher for: aSyntaxTree
+
+## Matching
+  matcher matches: aString            ""full match""
+  matcher matchesPrefix: aString      ""prefix match""
+  matcher search: aString             ""search anywhere""
+  matcher searchStream: aStream
+
+## Captures (1-based; group 1 = whole match, group 2 = first explicit group)
+  matcher subexpression: n            ""String or nil""
+  matcher subexpressionCount
+
+## Internals
+rootBlock is a [:pos :cont | Boolean] closure built by RxbtCompiler.
+captures is an Array of 1-based string positions: index 2n-1 = start of group n, 2n = end.
+Each match call resets captures to a fresh nil-filled array.
+
+See RxbtCompiler for the CPS engine implementation.
+"
 Class {
 	#name : 'RxbtMatcher',
 	#superclass : 'Object',
