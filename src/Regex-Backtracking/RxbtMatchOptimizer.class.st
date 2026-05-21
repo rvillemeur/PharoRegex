@@ -252,6 +252,10 @@ RxbtMatchOptimizer >> syntaxInlineModifier: node [
 ]
 
 { #category : 'visitor' }
+RxbtMatchOptimizer >> syntaxKeepStart [
+]
+
+{ #category : 'visitor' }
 RxbtMatchOptimizer >> syntaxLookaround: node [
     lookarounds add: node
 ]

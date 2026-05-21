@@ -92,6 +92,11 @@ RxbtParser >> atom [
             lookahead = $?
                 ifTrue: [
                     self next.
+                    lookahead = $#
+                        ifTrue: [
+                            [lookahead = #epsilon or: [lookahead = $)]] whileFalse: [self next].
+                            lookahead = #epsilon ifFalse: [self next].
+                            ^RxbtEpsilon new].
                     lookahead = $>
                         ifTrue: [
                             self next.
@@ -155,12 +160,13 @@ RxbtParser >> atom [
             lookahead = $z ifTrue: [self next. ^RxbtContextCondition new beEndOfString].
             lookahead = $Z ifTrue: [self next. ^RxbtContextCondition new beEndOfStringZ].
             lookahead = $R ifTrue: [self next. ^RxbtGenericNewline new].
+            lookahead = $K ifTrue: [self next. ^RxbtKeepStart new].
             lookahead = $k ifTrue: [
                 self next.
                 lookahead = $< ifTrue: [
                     | refName |
                     self next.
-                    refName := self inputUpToAny: '>' errorMessage: 'unterminated backreference name'.
+                    refName := self inputUpTo: $> errorMessage: 'unterminated backreference name'.
                     self match: $>.
                     ^RxbtNamedBackreference new name: refName]].
             lookahead isDigit ifTrue: [

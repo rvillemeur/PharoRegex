@@ -509,6 +509,13 @@ RxbtCompiler >> syntaxInlineModifier: node [
             ^[:pos :cont | cont value: pos]]
 ]
 
+{ #category : 'compiler' }
+RxbtCompiler >> syntaxKeepStart [
+    ^[:pos :cont |
+        matcher captures at: 1 put: pos.
+        cont value: pos]
+]
+
 { #category : 'syntax' }
 RxbtCompiler >> syntaxLookaround: node [
     | innerBlock |
