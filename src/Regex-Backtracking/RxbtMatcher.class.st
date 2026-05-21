@@ -41,6 +41,19 @@ RxbtMatcher >> allocateMarker [
     ^markerCount
 ]
 
+{ #category : 'building' }
+RxbtMatcher >> consumeAll: atomBlock from: pos [
+    "Greedily consume as many non-epsilon matches as possible; return final position."
+    | cur advanced |
+    cur := pos.
+    [ advanced := false.
+      atomBlock value: cur value: [ :newPos |
+          newPos > cur ifTrue: [ cur := newPos. advanced := true ].
+          false ].
+      advanced ] whileTrue.
+    ^cur
+]
+
 { #category : 'replace' }
 RxbtMatcher >> copy: aString replacingMatchesWith: replacement [
     | answer |
@@ -312,6 +325,55 @@ RxbtMatcher >> matchingRangesIn: aString [
     ^result
 ]
 
+{ #category : 'building' }
+RxbtMatcher >> possessiveOptional: atomBlock [
+    "Match zero or one, no backtracking — commit to matched position if any."
+    ^[ :pos :cont |
+        | matchedPos |
+        matchedPos := pos.
+        atomBlock value: pos value: [ :newPos | matchedPos := newPos. false ].
+        cont value: matchedPos ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> possessivePlus: atomBlock [
+    "Match one or more, greedy, no backtracking."
+    ^[ :pos :cont |
+        | firstPos |
+        firstPos := nil.
+        atomBlock value: pos value: [ :p | firstPos := p. false ].
+        firstPos isNil
+            ifTrue:  [ false ]
+            ifFalse: [ cont value: (self consumeAll: atomBlock from: firstPos) ] ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> possessiveRepeat: atomBlock min: minN max: maxN [
+    "Match minN..maxN times, greedy, no backtracking."
+    ^[ :pos :cont |
+        | cur count done |
+        cur := pos.
+        count := 0.
+        done := false.
+        [ done not and: [ maxN isNil or: [ count < maxN ] ] ] whileTrue: [
+            | prev |
+            prev := cur.
+            atomBlock value: cur value: [ :newPos |
+                newPos > cur ifTrue: [ cur := newPos. count := count + 1 ].
+                false ].
+            cur = prev ifTrue: [ done := true ] ].
+        count < minN
+            ifTrue:  [ false ]
+            ifFalse: [ cont value: cur ] ]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> possessiveStar: atomBlock [
+    "Match zero or more, greedy, no backtracking."
+    ^[ :pos :cont |
+        cont value: (self consumeAll: atomBlock from: pos) ]
+]
+
 { #category : 'matching' }
 RxbtMatcher >> search: aString [
     ^self searchStream: aString readStream
@@ -369,6 +431,23 @@ RxbtMatcher >> syntaxAny [
         (pos <= inputString size and: [(inputString at: pos) asInteger ~= 0])
             ifTrue:  [cont value: pos + 1]
             ifFalse: [false]]
+]
+
+{ #category : 'building' }
+RxbtMatcher >> syntaxAtomicGroup: node [
+    "Build a CPS block for (?>...). Matches inner greedily, commits to first (greedy max)
+     successful position — no backtracking into the group if continuation fails."
+    | innerBlock |
+    innerBlock := node inner dispatchTo: self.
+    ^[ :pos :cont |
+        | endPos |
+        endPos := nil.
+        innerBlock value: pos value: [ :ep |
+            endPos isNil ifTrue: [ endPos := ep ].
+            false ].
+        endPos isNil
+            ifTrue:  [ false ]
+            ifFalse: [ cont value: endPos ] ]
 ]
 
 { #category : 'building' }
@@ -518,21 +597,26 @@ RxbtMatcher >> syntaxNonWordBoundary [
 
 { #category : 'building' }
 RxbtMatcher >> syntaxPiece: pieceNode [
-    "Dispatch to greedy or lazy CPS helpers based on pieceNode isLazy."
+    "Dispatch to possessive, lazy, or greedy CPS helpers."
     | atomBlock |
     atomBlock := pieceNode atom dispatchTo: self.
     pieceNode isSingular ifTrue: [ ^atomBlock ].
+    pieceNode isPossessive
+        ifTrue: [
+            pieceNode isStar     ifTrue: [ ^self possessiveStar: atomBlock ].
+            pieceNode isPlus     ifTrue: [ ^self possessivePlus: atomBlock ].
+            pieceNode isOptional ifTrue: [ ^self possessiveOptional: atomBlock ].
+            ^self possessiveRepeat: atomBlock min: pieceNode min max: pieceNode max ].
     pieceNode isLazy
         ifTrue: [
             pieceNode isStar     ifTrue: [ ^self lazyStar: atomBlock ].
             pieceNode isPlus     ifTrue: [ ^self lazyPlus: atomBlock ].
             pieceNode isOptional ifTrue: [ ^self lazyOptional: atomBlock ].
-            ^self lazyRepeat: atomBlock min: pieceNode min max: pieceNode max ]
-        ifFalse: [
-            pieceNode isStar     ifTrue: [ ^self greedyStar: atomBlock ].
-            pieceNode isPlus     ifTrue: [ ^self greedyPlus: atomBlock ].
-            pieceNode isOptional ifTrue: [ ^self greedyOptional: atomBlock ].
-            ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max ]
+            ^self lazyRepeat: atomBlock min: pieceNode min max: pieceNode max ].
+    pieceNode isStar     ifTrue: [ ^self greedyStar: atomBlock ].
+    pieceNode isPlus     ifTrue: [ ^self greedyPlus: atomBlock ].
+    pieceNode isOptional ifTrue: [ ^self greedyOptional: atomBlock ].
+    ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max
 ]
 
 { #category : 'syntax' }
