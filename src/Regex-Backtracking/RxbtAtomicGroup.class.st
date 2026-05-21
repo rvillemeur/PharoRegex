@@ -18,17 +18,21 @@ RxbtAtomicGroup >> dispatchTo: aMatcher [
 ]
 
 { #category : 'accessing' }
-RxbtAtomicGroup >> inner [ ^inner
+RxbtAtomicGroup >> inner [ 
+    ^inner
 ]
 
 { #category : 'initialize' }
-RxbtAtomicGroup >> inner: aNode [ inner := aNode
+RxbtAtomicGroup >> inner: aNode [
+    inner := aNode
 ]
 
 { #category : 'testing' }
-RxbtAtomicGroup >> isAtomic [ ^true
+RxbtAtomicGroup >> isAtomic [ 
+    ^true
 ]
 
 { #category : 'testing' }
-RxbtAtomicGroup >> isNullable [ ^inner isNullable
+RxbtAtomicGroup >> isNullable [ 
+    ^inner isNullable
 ]

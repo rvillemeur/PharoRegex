@@ -15,11 +15,13 @@ Class {
 }
 
 { #category : 'accessing' }
-RxbtPiece >> atom [ ^atom
+RxbtPiece >> atom [ 
+    ^atom
 ]
 
 { #category : 'accessing' }
-RxbtPiece >> character [ ^atom character
+RxbtPiece >> character [ 
+    ^atom character
 ]
 
 { #category : 'double dispatch' }
@@ -53,41 +55,51 @@ RxbtPiece >> initializeStarAtom: anAtom [
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isAtomic [ ^self isSingular and: [atom isAtomic]
+RxbtPiece >> isAtomic [ 
+    ^self isSingular and: [atom isAtomic]
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isLazy [ ^false
+RxbtPiece >> isLazy [ 
+    ^false
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isNullable [ ^min = 0 or: [atom isNullable]
+RxbtPiece >> isNullable [ 
+    ^min = 0 or: [atom isNullable]
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isOptional [ ^min = 0 and: [max = 1]
+RxbtPiece >> isOptional [ 
+    ^min = 0 and: [max = 1]
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isPlus [ ^min = 1 and: [max == nil]
+RxbtPiece >> isPlus [ 
+    ^min = 1 and: [max == nil]
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isPossessive [ ^false
+RxbtPiece >> isPossessive [ 
+    ^false
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isSingular [ ^min = 1 and: [max = 1]
+RxbtPiece >> isSingular [ 
+    ^min = 1 and: [max = 1]
 ]
 
 { #category : 'testing' }
-RxbtPiece >> isStar [ ^min = 0 and: [max == nil]
+RxbtPiece >> isStar [ 
+    ^min = 0 and: [max == nil]
 ]
 
 { #category : 'accessing' }
-RxbtPiece >> max [ ^max
+RxbtPiece >> max [ 
+    ^max
 ]
 
 { #category : 'accessing' }
-RxbtPiece >> min [ ^min
+RxbtPiece >> min [ 
+    ^min
 ]

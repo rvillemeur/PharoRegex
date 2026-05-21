@@ -51,7 +51,8 @@ RxbtCharSet >> isEnumerable [
 ]
 
 { #category : 'testing' }
-RxbtCharSet >> isNegated [ ^negated
+RxbtCharSet >> isNegated [ 
+    ^negated
 ]
 
 { #category : 'private' }

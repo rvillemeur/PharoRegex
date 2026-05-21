@@ -12,17 +12,21 @@ Class {
 }
 
 { #category : 'printing' }
-RxbtNode >> indentCharacter [ ^$+
+RxbtNode >> indentCharacter [ 
+    ^$+
 ]
 
 { #category : 'testing' }
-RxbtNode >> isAtomic [ ^false
+RxbtNode >> isAtomic [ 
+    ^false
 ]
 
 { #category : 'testing' }
-RxbtNode >> isEnumerable [ ^false
+RxbtNode >> isEnumerable [ 
+    ^false
 ]
 
 { #category : 'testing' }
-RxbtNode >> isNullable [ ^false
+RxbtNode >> isNullable [ 
+    ^false
 ]

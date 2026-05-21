@@ -13,31 +13,38 @@ Class {
 }
 
 { #category : 'initialize' }
-RxbtContextCondition >> beAny [ kind := #syntaxAny
+RxbtContextCondition >> beAny [
+    kind := #syntaxAny
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beBeginningOfLine [ kind := #syntaxBeginningOfLine
+RxbtContextCondition >> beBeginningOfLine [
+    kind := #syntaxBeginningOfLine
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beBeginningOfWord [ kind := #syntaxBeginningOfWord
+RxbtContextCondition >> beBeginningOfWord [
+    kind := #syntaxBeginningOfWord
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beEndOfLine [ kind := #syntaxEndOfLine
+RxbtContextCondition >> beEndOfLine [
+    kind := #syntaxEndOfLine
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beEndOfWord [ kind := #syntaxEndOfWord
+RxbtContextCondition >> beEndOfWord [
+    kind := #syntaxEndOfWord
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beNonWordBoundary [ kind := #syntaxNonWordBoundary
+RxbtContextCondition >> beNonWordBoundary [
+    kind := #syntaxNonWordBoundary
 ]
 
 { #category : 'initialize' }
-RxbtContextCondition >> beWordBoundary [ kind := #syntaxWordBoundary
+RxbtContextCondition >> beWordBoundary [
+    kind := #syntaxWordBoundary
 ]
 
 { #category : 'double dispatch' }
@@ -46,5 +53,6 @@ RxbtContextCondition >> dispatchTo: aBuilder [
 ]
 
 { #category : 'testing' }
-RxbtContextCondition >> isNullable [ ^#syntaxAny ~~ kind
+RxbtContextCondition >> isNullable [ 
+    ^#syntaxAny ~~ kind
 ]

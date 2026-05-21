@@ -19,11 +19,13 @@ RxbtLookaround class >> with: anRxbtPiece [
 ]
 
 { #category : 'initialize' }
-RxbtLookaround >> beNegative [ positive := false
+RxbtLookaround >> beNegative [
+    positive := false
 ]
 
 { #category : 'initialize' }
-RxbtLookaround >> bePositive [ positive := true
+RxbtLookaround >> bePositive [
+    positive := true
 ]
 
 { #category : 'double dispatch' }
@@ -38,9 +40,11 @@ RxbtLookaround >> initializePiece: anRxbtPiece [
 ]
 
 { #category : 'accessing' }
-RxbtLookaround >> piece [ ^piece
+RxbtLookaround >> piece [ 
+    ^piece
 ]
 
 { #category : 'accessing' }
-RxbtLookaround >> positive [ ^positive
+RxbtLookaround >> positive [ 
+    ^positive
 ]

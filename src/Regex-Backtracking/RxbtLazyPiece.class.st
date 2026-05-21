@@ -10,5 +10,6 @@ Class {
 }
 
 { #category : 'testing' }
-RxbtLazyPiece >> isLazy [ ^true
+RxbtLazyPiece >> isLazy [ 
+    ^true
 ]

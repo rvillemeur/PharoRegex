@@ -18,17 +18,21 @@ RxbtBackreference >> dispatchTo: aMatcher [
 ]
 
 { #category : 'accessing' }
-RxbtBackreference >> groupIndex [ ^groupIndex
+RxbtBackreference >> groupIndex [ 
+    ^groupIndex
 ]
 
 { #category : 'initialize' }
-RxbtBackreference >> groupIndex: n [ groupIndex := n
+RxbtBackreference >> groupIndex: n [
+    groupIndex := n
 ]
 
 { #category : 'testing' }
-RxbtBackreference >> isAtomic [ ^true
+RxbtBackreference >> isAtomic [ 
+    ^true
 ]
 
 { #category : 'testing' }
-RxbtBackreference >> isNullable [ ^false
+RxbtBackreference >> isNullable [ 
+    ^false
 ]

@@ -15,5 +15,6 @@ RxbtEpsilon >> dispatchTo: aBuilder [
 ]
 
 { #category : 'testing' }
-RxbtEpsilon >> isNullable [ ^true
+RxbtEpsilon >> isNullable [ 
+    ^true
 ]

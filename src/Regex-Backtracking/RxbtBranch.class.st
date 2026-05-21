@@ -14,7 +14,8 @@ Class {
 }
 
 { #category : 'accessing' }
-RxbtBranch >> branch [ ^branch
+RxbtBranch >> branch [ 
+    ^branch
 ]
 
 { #category : 'double dispatch' }
@@ -34,7 +35,8 @@ RxbtBranch >> isNullable [
 ]
 
 { #category : 'accessing' }
-RxbtBranch >> piece [ ^piece
+RxbtBranch >> piece [ 
+    ^piece
 ]
 
 { #category : 'optimising' }

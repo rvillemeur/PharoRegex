@@ -98,7 +98,8 @@ RxbtPredicate >> beDigit [
 ]
 
 { #category : 'initialize' }
-RxbtPredicate >> beGraphics [ self beControl; negate
+RxbtPredicate >> beGraphics [ 
+    self beControl; negate
 ]
 
 { #category : 'initialize' }
@@ -116,19 +117,23 @@ RxbtPredicate >> beLowercase [
 ]
 
 { #category : 'initialize' }
-RxbtPredicate >> beNotDigit [ self beDigit; negate
+RxbtPredicate >> beNotDigit [ 
+    self beDigit; negate
 ]
 
 { #category : 'initialize' }
-RxbtPredicate >> beNotSpace [ self beSpace; negate
+RxbtPredicate >> beNotSpace [ 
+    self beSpace; negate
 ]
 
 { #category : 'initialize' }
-RxbtPredicate >> beNotWordConstituent [ self beWordConstituent; negate
+RxbtPredicate >> beNotWordConstituent [ 
+    self beWordConstituent; negate
 ]
 
 { #category : 'initialize' }
-RxbtPredicate >> bePrintable [ self beControl; negate
+RxbtPredicate >> bePrintable [ 
+    self beControl; negate
 ]
 
 { #category : 'initialize' }
@@ -158,11 +163,13 @@ RxbtPredicate >> beWordConstituent [
 ]
 
 { #category : 'double dispatch' }
-RxbtPredicate >> dispatchTo: anObject [ ^anObject syntaxPredicate: self
+RxbtPredicate >> dispatchTo: anObject [ 
+    ^anObject syntaxPredicate: self
 ]
 
 { #category : 'testing' }
-RxbtPredicate >> isEnumerable [ ^false
+RxbtPredicate >> isEnumerable [ 
+    ^false
 ]
 
 { #category : 'operations' }
@@ -172,17 +179,21 @@ RxbtPredicate >> negate [
 ]
 
 { #category : 'accessing' }
-RxbtPredicate >> negated [ ^self copy negate
+RxbtPredicate >> negated [ 
+    ^self copy negate
 ]
 
 { #category : 'accessing' }
-RxbtPredicate >> predicate [ ^predicate
+RxbtPredicate >> predicate [ 
+    ^predicate
 ]
 
 { #category : 'accessing' }
-RxbtPredicate >> predicateNegation [ ^negation
+RxbtPredicate >> predicateNegation [ 
+    ^negation
 ]
 
 { #category : 'evaluating' }
-RxbtPredicate >> value: aChar [ ^predicate value: aChar
+RxbtPredicate >> value: aChar [ 
+    ^predicate value: aChar
 ]

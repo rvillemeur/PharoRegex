@@ -10,5 +10,6 @@ Class {
 }
 
 { #category : 'testing' }
-RxbtPossessivePiece >> isPossessive [ ^true
+RxbtPossessivePiece >> isPossessive [ 
+    ^true
 ]

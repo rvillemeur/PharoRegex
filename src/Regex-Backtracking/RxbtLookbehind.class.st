@@ -1,3 +1,9 @@
+"
+AST node for lookbehind assertions (?<=...) and (?<!...).
+positive=true for positive lookbehind, false for negative.
+At runtime the inner pattern is tried against all substrings ending at the current
+position. Zero-width: does not advance pos on success.
+"
 Class {
 	#name : 'RxbtLookbehind',
 	#superclass : 'RxbtNode',
@@ -5,12 +11,14 @@ Class {
 		'inner',
 		'positive'
 	],
-	#category : 'Regex-Backtracking',
-	#package : 'Regex-Backtracking'
+	#category : 'Regex-Backtracking-Nodes',
+	#package : 'Regex-Backtracking',
+	#tag : 'Nodes'
 }
 
 { #category : 'initialize' }
-RxbtLookbehind >> beNegative [ positive := false
+RxbtLookbehind >> beNegative [
+    positive := false
 ]
 
 { #category : 'double dispatch' }
@@ -19,7 +27,8 @@ RxbtLookbehind >> dispatchTo: aCompiler [
 ]
 
 { #category : 'accessing' }
-RxbtLookbehind >> inner [ ^inner
+RxbtLookbehind >> inner [
+    ^inner
 ]
 
 { #category : 'initialize' }
@@ -29,9 +38,11 @@ RxbtLookbehind >> inner: aNode [
 ]
 
 { #category : 'testing' }
-RxbtLookbehind >> isNullable [ ^true
+RxbtLookbehind >> isNullable [
+    ^true
 ]
 
 { #category : 'accessing' }
-RxbtLookbehind >> positive [ ^positive
+RxbtLookbehind >> positive [
+    ^positive
 ]

@@ -18,7 +18,8 @@ RxbtCharacter class >> with: aCharacter [
 ]
 
 { #category : 'accessing' }
-RxbtCharacter >> character [ ^character
+RxbtCharacter >> character [ 
+    ^character
 ]
 
 { #category : 'double dispatch' }
@@ -34,13 +35,16 @@ RxbtCharacter >> enumerateTo: aSet ignoringCase: aBoolean [
 ]
 
 { #category : 'initialize' }
-RxbtCharacter >> initializeCharacter: aChar [ character := aChar
+RxbtCharacter >> initializeCharacter: aChar [
+    character := aChar
 ]
 
 { #category : 'testing' }
-RxbtCharacter >> isAtomic [ ^true
+RxbtCharacter >> isAtomic [ 
+    ^true
 ]
 
 { #category : 'testing' }
-RxbtCharacter >> isEnumerable [ ^true
+RxbtCharacter >> isEnumerable [ 
+    ^true
 ]

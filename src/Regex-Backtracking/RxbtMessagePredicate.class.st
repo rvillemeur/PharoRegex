@@ -29,9 +29,11 @@ RxbtMessagePredicate >> initializeSelector: sel negated: neg [
 ]
 
 { #category : 'accessing' }
-RxbtMessagePredicate >> negated [ ^negated
+RxbtMessagePredicate >> negated [ 
+    ^negated
 ]
 
 { #category : 'accessing' }
-RxbtMessagePredicate >> selector [ ^selector
+RxbtMessagePredicate >> selector [ 
+    ^selector
 ]

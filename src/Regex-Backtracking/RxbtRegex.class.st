@@ -14,7 +14,8 @@ Class {
 }
 
 { #category : 'accessing' }
-RxbtRegex >> branch [ ^branch
+RxbtRegex >> branch [ 
+    ^branch
 ]
 
 { #category : 'double dispatch' }
@@ -34,5 +35,6 @@ RxbtRegex >> isNullable [
 ]
 
 { #category : 'accessing' }
-RxbtRegex >> regex [ ^regex
+RxbtRegex >> regex [ 
+    ^regex
 ]

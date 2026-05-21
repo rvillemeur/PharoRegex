@@ -28,9 +28,12 @@ RxbtRange >> enumerateTo: aSet ignoringCase: aBoolean [
 ]
 
 { #category : 'initialize' }
-RxbtRange >> initializeFirst: f last: l [ first := f. last := l
+RxbtRange >> initializeFirst: f last: l [
+    first := f.
+    last := l
 ]
 
 { #category : 'testing' }
-RxbtRange >> isEnumerable [ ^true
+RxbtRange >> isEnumerable [ 
+    ^true
 ]
