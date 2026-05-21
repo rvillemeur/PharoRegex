@@ -36,7 +36,8 @@ Class {
 		'inputString',
 		'captures',
 		'markerCount',
-		'rootBlock'
+		'rootBlock',
+		'groupNames'
 	],
 	#category : 'Regex-Backtracking-Base',
 	#package : 'Regex-Backtracking',
@@ -123,10 +124,16 @@ RxbtMatcher >> copyStream: aStream to: writeStream translatingMatchesUsing: aBlo
     [aStream atEnd] whileFalse: [writeStream nextPut: aStream next]
 ]
 
+{ #category : 'accessing' }
+RxbtMatcher >> groupNames [
+    ^groupNames
+]
+
 { #category : 'initialize' }
 RxbtMatcher >> initialize: syntaxTreeRoot ignoreCase: aBoolean [
     | compiler |
     ignoreCase := aBoolean.
+    groupNames := nil.
     compiler := RxbtCompiler for: self ignoreCase: aBoolean.
     rootBlock := compiler compile: syntaxTreeRoot.
     markerCount := compiler markerCount.
@@ -245,6 +252,12 @@ RxbtMatcher >> matchingRangesIn: aString [
     ^result
 ]
 
+{ #category : 'accessing' }
+RxbtMatcher >> registerGroupName: aString at: groupNumber [
+    groupNames ifNil: [groupNames := Dictionary new].
+    groupNames at: aString put: groupNumber
+]
+
 { #category : 'matching' }
 RxbtMatcher >> search: aString [
     ^self searchStream: aString readStream
@@ -289,6 +302,23 @@ RxbtMatcher >> subexpression: n [
 { #category : 'accessing' }
 RxbtMatcher >> subexpressionCount [
     ^markerCount // 2
+]
+
+{ #category : 'accessing' }
+RxbtMatcher >> subexpressionNamed: aString [
+    | idx start end |
+    groupNames isNil ifTrue: [^nil].
+    idx := groupNames at: aString ifAbsent: [^nil].
+    start := captures at: 2 * idx - 1.
+    end   := captures at: 2 * idx.
+    (start isNil or: [end isNil]) ifTrue: [^nil].
+    ^inputString copyFrom: start to: end - 1
+]
+
+{ #category : 'accessing' }
+RxbtMatcher >> subexpressionNames [
+    groupNames isNil ifTrue: [^#()].
+    ^groupNames keys
 ]
 
 { #category : 'accessing' }

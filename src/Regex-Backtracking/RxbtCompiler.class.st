@@ -404,6 +404,66 @@ RxbtCompiler >> syntaxMessagePredicate: node [
 ]
 
 { #category : 'syntax' }
+RxbtCompiler >> syntaxNamedBackreference: node [
+    | groupNum |
+    groupNum := matcher groupNames
+        ifNil: [nil]
+        ifNotNil: [:gn | gn at: node name ifAbsent: [nil]].
+    groupNum isNil ifTrue: [^[:pos :cont | false]].
+    ^[:pos :cont |
+        | caps str start end refText sz |
+        caps := matcher captures.
+        str  := matcher inputString.
+        (2 * groupNum > caps size)
+            ifTrue: [false]
+            ifFalse: [
+                start := caps at: 2 * groupNum - 1.
+                end   := caps at: 2 * groupNum.
+                (start isNil or: [end isNil])
+                    ifTrue: [false]
+                    ifFalse: [
+                        refText := str copyFrom: start to: end - 1.
+                        sz := refText size.
+                        (pos + sz - 1 > str size)
+                            ifTrue: [false]
+                            ifFalse: [
+                                (ignoreCase
+                                    ifTrue:  [(str copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase]
+                                    ifFalse: [(str copyFrom: pos to: pos + sz - 1) = refText])
+                                    ifTrue:  [cont value: pos + sz]
+                                    ifFalse: [false]]]]]
+]
+
+{ #category : 'syntax' }
+RxbtCompiler >> syntaxNamedCapture: node [
+    | startIdx endIdx altBlocks inner |
+    startIdx := self allocateMarker.
+    endIdx   := self allocateMarker.
+    matcher registerGroupName: node name at: (startIdx + 1) // 2.
+    altBlocks := OrderedCollection new.
+    inner := node inner.
+    [inner notNil] whileTrue: [
+        altBlocks add: (inner branch dispatchTo: self).
+        inner := inner regex].
+    ^[:pos :cont |
+        | caps savedStart savedEnd result |
+        caps := matcher captures.
+        savedStart := caps at: startIdx.
+        savedEnd   := caps at: endIdx.
+        caps at: startIdx put: pos.
+        result := false.
+        altBlocks do: [:ab |
+            result ifFalse: [
+                result := ab value: pos value: [:endPos |
+                    caps at: endIdx put: endPos.
+                    cont value: endPos]]].
+        result ifFalse: [
+            caps at: startIdx put: savedStart.
+            caps at: endIdx   put: savedEnd].
+        result]
+]
+
+{ #category : 'syntax' }
 RxbtCompiler >> syntaxNonCapturingGroup: node [
     | altBlocks inner |
     altBlocks := OrderedCollection new.

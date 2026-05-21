@@ -103,7 +103,12 @@ RxbtParser >> atom [
                     lookahead = $<
                         ifTrue: [
                             self next.
-                            atom := self lookBehind.
+                            (lookahead = $= or: [lookahead = $!])
+                                ifTrue: [
+                                    atom := self lookBehind.
+                                    self match: $).
+                                    ^atom].
+                            atom := self namedCapture.
                             self match: $).
                             ^atom].
                     atom := self lookAround.
@@ -137,6 +142,14 @@ RxbtParser >> atom [
                     self next.
                     ^atom].
             self ifSpecial: lookahead then: [:node | self next. ^node].
+            lookahead = $k ifTrue: [
+                self next.
+                lookahead = $< ifTrue: [
+                    | refName |
+                    self next.
+                    refName := self inputUpToAny: '>' errorMessage: 'unterminated backreference name'.
+                    self match: $>.
+                    ^RxbtNamedBackreference new name: refName]].
             lookahead isDigit ifTrue: [
                 | n |
                 n := lookahead digitValue.
@@ -260,6 +273,15 @@ RxbtParser >> messagePredicate [
     spec first = $^
         ifTrue: [negated := true. spec := spec copyFrom: 2 to: spec size].
     ^RxbtMessagePredicate new initializeSelector: spec asSymbol negated: negated
+]
+
+{ #category : 'parsing' }
+RxbtParser >> namedCapture [
+    | capName inner |
+    capName := self inputUpToAny: '>' errorMessage: 'unterminated group name'.
+    self match: $>.
+    inner := self regex.
+    ^RxbtNamedCapture new name: capName inner: inner
 ]
 
 { #category : 'parsing' }
