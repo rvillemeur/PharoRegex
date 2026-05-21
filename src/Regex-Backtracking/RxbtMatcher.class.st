@@ -6,8 +6,7 @@ Class {
 		'inputString',
 		'captures',
 		'markerCount',
-		'rootBlock',
-		'groupMap'
+		'rootBlock'
 	],
 	#category : 'Regex-Backtracking',
 	#package : 'Regex-Backtracking'
@@ -35,23 +34,9 @@ RxbtMatcher class >> forString: aString ignoreCase: aBoolean [
     ^tree ifNotNil: [self for: tree ignoreCase: aBoolean]
 ]
 
-{ #category : 'building' }
-RxbtMatcher >> allocateMarker [
-    markerCount := markerCount + 1.
-    ^markerCount
-]
-
-{ #category : 'building' }
-RxbtMatcher >> consumeAll: atomBlock from: pos [
-    "Greedily consume as many non-epsilon matches as possible; return final position."
-    | cur advanced |
-    cur := pos.
-    [ advanced := false.
-      atomBlock value: cur value: [ :newPos |
-          newPos > cur ifTrue: [ cur := newPos. advanced := true ].
-          false ].
-      advanced ] whileTrue.
-    ^cur
+{ #category : 'accessing' }
+RxbtMatcher >> captures [
+    ^captures
 ]
 
 { #category : 'replace' }
@@ -103,36 +88,13 @@ RxbtMatcher >> copyStream: aStream to: writeStream translatingMatchesUsing: aBlo
     [aStream atEnd] whileFalse: [writeStream nextPut: aStream next]
 ]
 
-{ #category : 'matching' }
-RxbtMatcher >> greedyOptional: atomBlock [
-    ^[:pos :cont |
-        (atomBlock value: pos value: cont) or: [cont value: pos]]
-]
-
-{ #category : 'matching' }
-RxbtMatcher >> greedyPlus: atomBlock [
-    ^[:pos :cont |
-        atomBlock value: pos value: [:pos2 |
-            self matchStar: atomBlock from: pos2 continuation: cont]]
-]
-
-{ #category : 'matching' }
-RxbtMatcher >> greedyRepeat: atomBlock min: minN max: maxN [
-    ^[:pos :cont |
-        self matchRepeat: atomBlock from: pos count: 0 min: minN max: maxN continuation: cont]
-]
-
-{ #category : 'matching' }
-RxbtMatcher >> greedyStar: atomBlock [
-    ^[:pos :cont | self matchStar: atomBlock from: pos continuation: cont]
-]
-
-{ #category : 'building' }
+{ #category : 'initialize' }
 RxbtMatcher >> initialize: syntaxTreeRoot ignoreCase: aBoolean [
+    | compiler |
     ignoreCase := aBoolean.
-    markerCount := 0.
-    groupMap := IdentityDictionary new.
-    rootBlock := syntaxTreeRoot dispatchTo: self.
+    compiler := RxbtCompiler for: self ignoreCase: aBoolean.
+    rootBlock := compiler compile: syntaxTreeRoot.
+    markerCount := compiler markerCount.
     captures := Array new: markerCount withAll: nil
 ]
 
@@ -146,86 +108,9 @@ RxbtMatcher >> inputSize [
     ^inputString size
 ]
 
-{ #category : 'private' }
-RxbtMatcher >> isWordChar: aChar [
-    ^aChar isLetter or: [aChar isDigit or: [aChar = $_]]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> lazyOptional: atomBlock [
-    "Return a CPS block matching zero or one occurrence, lazy (zero first)."
-    ^[ :pos :cont |
-        (cont value: pos) ifTrue: [ true ] ifFalse: [ atomBlock value: pos value: cont ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> lazyPlus: atomBlock [
-    "Return a CPS block matching one or more repetitions, lazy (fewest first)."
-    ^[ :pos :cont |
-        atomBlock value: pos value: [ :pos2 |
-            self matchLazyStar: atomBlock from: pos2 continuation: cont ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> lazyRepeat: atomBlock min: minN max: maxN [
-    "Return a CPS block for lazy {minN,maxN} — fewest matches first."
-    ^[ :pos :cont |
-        self matchLazyRepeat: atomBlock from: pos count: 0
-             min: minN max: maxN continuation: cont ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> lazyStar: atomBlock [
-    "Return a CPS block matching zero or more repetitions, lazy (fewest first)."
-    ^[ :pos :cont | self matchLazyStar: atomBlock from: pos continuation: cont ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> matchLazyRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
-    "Recursive lazy {n,m}: try continuation as soon as minimum is reached."
-    n >= minN ifTrue: [
-        (cont value: pos) ifTrue: [ ^true ] ].
-    (maxN notNil and: [ n >= maxN ]) ifTrue: [ ^false ].
-    ^atomBlock value: pos value: [ :newPos |
-        newPos = pos
-            ifTrue:  [ false ]
-            ifFalse: [ self matchLazyRepeat: atomBlock from: newPos count: n + 1
-                            min: minN max: maxN continuation: cont ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> matchLazyStar: atomBlock from: pos continuation: cont [
-    "Try zero matches first (lazy). Expand by one on continuation failure."
-    (cont value: pos) ifTrue: [ ^true ].
-    ^atomBlock value: pos value: [ :newPos |
-        newPos = pos
-            ifTrue:  [ false ]
-            ifFalse: [ self matchLazyStar: atomBlock from: newPos continuation: cont ] ]
-]
-
-{ #category : 'matching' }
-RxbtMatcher >> matchRepeat: atomBlock from: pos count: n min: minN max: maxN continuation: cont [
-    | result |
-    (maxN notNil and: [n >= maxN]) ifTrue: [
-        ^n >= minN ifTrue: [cont value: pos] ifFalse: [false]].
-    result := atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [n >= minN ifTrue: [cont value: newPos] ifFalse: [false]]
-            ifFalse: [self matchRepeat: atomBlock from: newPos count: n+1
-                          min: minN max: maxN continuation: cont]].
-    (result not and: [n >= minN]) ifTrue: [^cont value: pos].
-    ^result
-]
-
-{ #category : 'matching' }
-RxbtMatcher >> matchStar: atomBlock from: pos continuation: cont [
-    | result |
-    result := atomBlock value: pos value: [:newPos |
-        newPos = pos
-            ifTrue:  [cont value: newPos]
-            ifFalse: [self matchStar: atomBlock from: newPos continuation: cont]].
-    result ifFalse: [^cont value: pos].
-    ^result
+{ #category : 'accessing' }
+RxbtMatcher >> inputString [
+    ^inputString
 ]
 
 { #category : 'matching' }
@@ -325,55 +210,6 @@ RxbtMatcher >> matchingRangesIn: aString [
     ^result
 ]
 
-{ #category : 'building' }
-RxbtMatcher >> possessiveOptional: atomBlock [
-    "Match zero or one, no backtracking — commit to matched position if any."
-    ^[ :pos :cont |
-        | matchedPos |
-        matchedPos := pos.
-        atomBlock value: pos value: [ :newPos | matchedPos := newPos. false ].
-        cont value: matchedPos ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> possessivePlus: atomBlock [
-    "Match one or more, greedy, no backtracking."
-    ^[ :pos :cont |
-        | firstPos |
-        firstPos := nil.
-        atomBlock value: pos value: [ :p | firstPos := p. false ].
-        firstPos isNil
-            ifTrue:  [ false ]
-            ifFalse: [ cont value: (self consumeAll: atomBlock from: firstPos) ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> possessiveRepeat: atomBlock min: minN max: maxN [
-    "Match minN..maxN times, greedy, no backtracking."
-    ^[ :pos :cont |
-        | cur count done |
-        cur := pos.
-        count := 0.
-        done := false.
-        [ done not and: [ maxN isNil or: [ count < maxN ] ] ] whileTrue: [
-            | prev |
-            prev := cur.
-            atomBlock value: cur value: [ :newPos |
-                newPos > cur ifTrue: [ cur := newPos. count := count + 1 ].
-                false ].
-            cur = prev ifTrue: [ done := true ] ].
-        count < minN
-            ifTrue:  [ false ]
-            ifFalse: [ cont value: cur ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> possessiveStar: atomBlock [
-    "Match zero or more, greedy, no backtracking."
-    ^[ :pos :cont |
-        cont value: (self consumeAll: atomBlock from: pos) ]
-]
-
 { #category : 'matching' }
 RxbtMatcher >> search: aString [
     ^self searchStream: aString readStream
@@ -423,243 +259,4 @@ RxbtMatcher >> subexpressionCount [
 { #category : 'accessing' }
 RxbtMatcher >> supportsSubexpressions [
     ^true
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxAny [
-    ^[:pos :cont |
-        (pos <= inputString size and: [(inputString at: pos) asInteger ~= 0])
-            ifTrue:  [cont value: pos + 1]
-            ifFalse: [false]]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> syntaxAtomicGroup: node [
-    "Build a CPS block for (?>...). Matches inner greedily, commits to first (greedy max)
-     successful position — no backtracking into the group if continuation fails."
-    | innerBlock |
-    innerBlock := node inner dispatchTo: self.
-    ^[ :pos :cont |
-        | endPos |
-        endPos := nil.
-        innerBlock value: pos value: [ :ep |
-            endPos isNil ifTrue: [ endPos := ep ].
-            false ].
-        endPos isNil
-            ifTrue:  [ false ]
-            ifFalse: [ cont value: endPos ] ]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> syntaxBackreference: node [
-    "Build a CPS block that matches the text previously captured by group node groupIndex.
-    node groupIndex is 1-based explicit group number; marker index = groupIndex + 1."
-    | markerIdx |
-    markerIdx := node groupIndex + 1.
-    ^[ :pos :cont |
-        | start end refText sz |
-        start := captures at: 2 * markerIdx - 1.
-        end   := captures at: 2 * markerIdx.
-        (start isNil or: [ end isNil ])
-            ifTrue: [ false ]
-            ifFalse: [
-                refText := inputString copyFrom: start to: end - 1.
-                sz := refText size.
-                (pos + sz - 1 > inputString size)
-                    ifTrue: [ false ]
-                    ifFalse: [
-                        (ignoreCase
-                            ifTrue:  [ (inputString copyFrom: pos to: pos + sz - 1) asLowercase = refText asLowercase ]
-                            ifFalse: [ (inputString copyFrom: pos to: pos + sz - 1) = refText ])
-                            ifTrue:  [ cont value: pos + sz ]
-                            ifFalse: [ false ] ] ] ]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxBeginningOfLine [
-    ^[:pos :cont |
-        | atBOL prev |
-        atBOL := pos = 1 or: [
-            prev := inputString at: pos - 1.
-            prev = (Character value: 10) or: [
-                prev = (Character value: 13) and: [
-                    pos > inputString size or: [
-                        (inputString at: pos) ~= (Character value: 10)]]]].
-        atBOL ifTrue: [cont value: pos] ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxBeginningOfWord [
-    ^[:pos :cont |
-        | atWord prevWord |
-        atWord   := pos <= inputString size and: [self isWordChar: (inputString at: pos)].
-        prevWord := pos > 1 and: [self isWordChar: (inputString at: pos - 1)].
-        (atWord and: [prevWord not]) ifTrue: [cont value: pos] ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxBranch: branchNode [
-    | pieceBlock restBlock |
-    pieceBlock := branchNode piece dispatchTo: self.
-    restBlock := branchNode branch isNil
-        ifTrue:  [nil]
-        ifFalse: [branchNode branch dispatchTo: self].
-    restBlock isNil ifTrue: [^pieceBlock].
-    ^[:pos :cont |
-        pieceBlock value: pos value: [:pos2 |
-            restBlock value: pos2 value: cont]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxCharSet: charSetNode [
-    | predBlock |
-    predBlock := charSetNode predicateIgnoringCase: ignoreCase.
-    ^[:pos :cont |
-        (pos <= inputString size and: [predBlock value: (inputString at: pos)])
-            ifTrue: [cont value: pos + 1]
-            ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxCharacter: charNode [
-    ^[:pos :cont |
-        (pos <= inputString size and: [
-            ignoreCase
-                ifTrue:  [(inputString at: pos) asLowercase = charNode character asLowercase]
-                ifFalse: [(inputString at: pos) = charNode character]])
-            ifTrue: [cont value: pos + 1]
-            ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxEndOfLine [
-    ^[:pos :cont |
-        | atEOL cur |
-        atEOL := pos > inputString size or: [
-            cur := inputString at: pos.
-            cur = (Character value: 13) or: [
-                cur = (Character value: 10) and: [
-                    pos = 1 or: [(inputString at: pos - 1) ~= (Character value: 13)]]]].
-        atEOL ifTrue: [cont value: pos] ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxEndOfWord [
-    ^[:pos :cont |
-        | atWord prevWord |
-        atWord   := pos <= inputString size and: [self isWordChar: (inputString at: pos)].
-        prevWord := pos > 1 and: [self isWordChar: (inputString at: pos - 1)].
-        (prevWord and: [atWord not]) ifTrue: [cont value: pos] ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxEpsilon [
-    ^[:pos :cont | cont value: pos]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxLookaround: node [
-    | innerBlock |
-    innerBlock := node piece dispatchTo: self.
-    node positive
-        ifTrue: [
-            ^[:pos :cont |
-                (innerBlock value: pos value: [:_ | true])
-                    ifTrue:  [cont value: pos]
-                    ifFalse: [false]]]
-        ifFalse: [
-            ^[:pos :cont |
-                (innerBlock value: pos value: [:_ | true])
-                    ifTrue:  [false]
-                    ifFalse: [cont value: pos]]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxMessagePredicate: node [
-    | sel neg |
-    sel := node selector.
-    neg := node negated.
-    ^[:pos :cont |
-        (pos <= inputString size and: [
-            ((inputString at: pos) perform: sel) xor: neg])
-            ifTrue: [cont value: pos + 1]
-            ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxNonWordBoundary [
-    ^[:pos :cont |
-        | atWord prevWord |
-        atWord   := pos <= inputString size and: [self isWordChar: (inputString at: pos)].
-        prevWord := pos > 1 and: [self isWordChar: (inputString at: pos - 1)].
-        (atWord xor: prevWord) ifFalse: [cont value: pos] ifTrue: [false]]
-]
-
-{ #category : 'building' }
-RxbtMatcher >> syntaxPiece: pieceNode [
-    "Dispatch to possessive, lazy, or greedy CPS helpers."
-    | atomBlock |
-    atomBlock := pieceNode atom dispatchTo: self.
-    pieceNode isSingular ifTrue: [ ^atomBlock ].
-    pieceNode isPossessive
-        ifTrue: [
-            pieceNode isStar     ifTrue: [ ^self possessiveStar: atomBlock ].
-            pieceNode isPlus     ifTrue: [ ^self possessivePlus: atomBlock ].
-            pieceNode isOptional ifTrue: [ ^self possessiveOptional: atomBlock ].
-            ^self possessiveRepeat: atomBlock min: pieceNode min max: pieceNode max ].
-    pieceNode isLazy
-        ifTrue: [
-            pieceNode isStar     ifTrue: [ ^self lazyStar: atomBlock ].
-            pieceNode isPlus     ifTrue: [ ^self lazyPlus: atomBlock ].
-            pieceNode isOptional ifTrue: [ ^self lazyOptional: atomBlock ].
-            ^self lazyRepeat: atomBlock min: pieceNode min max: pieceNode max ].
-    pieceNode isStar     ifTrue: [ ^self greedyStar: atomBlock ].
-    pieceNode isPlus     ifTrue: [ ^self greedyPlus: atomBlock ].
-    pieceNode isOptional ifTrue: [ ^self greedyOptional: atomBlock ].
-    ^self greedyRepeat: atomBlock min: pieceNode min max: pieceNode max
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxPredicate: predNode [
-    ^[:pos :cont |
-        (pos <= inputString size and: [predNode value: (inputString at: pos)])
-            ifTrue: [cont value: pos + 1]
-            ifFalse: [false]]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxRegex: regexNode [
-    | startIdx endIdx altBlocks node |
-    startIdx := self allocateMarker.
-    endIdx   := self allocateMarker.
-    groupMap at: regexNode put: startIdx.
-    altBlocks := OrderedCollection new.
-    node := regexNode.
-    [node notNil] whileTrue: [
-        altBlocks add: (node branch dispatchTo: self).
-        node := node regex].
-    ^[:pos :cont |
-        | savedStart savedEnd result |
-        savedStart := captures at: startIdx.
-        savedEnd   := captures at: endIdx.
-        captures at: startIdx put: pos.
-        result := false.
-        altBlocks do: [:ab |
-            result ifFalse: [
-                result := ab value: pos value: [:endPos |
-                    captures at: endIdx put: endPos.
-                    cont value: endPos]]].
-        result ifFalse: [
-            captures at: startIdx put: savedStart.
-            captures at: endIdx   put: savedEnd].
-        result]
-]
-
-{ #category : 'syntax' }
-RxbtMatcher >> syntaxWordBoundary [
-    ^[:pos :cont |
-        | atWord prevWord |
-        atWord   := pos <= inputString size and: [self isWordChar: (inputString at: pos)].
-        prevWord := pos > 1 and: [self isWordChar: (inputString at: pos - 1)].
-        (atWord xor: prevWord) ifTrue: [cont value: pos] ifFalse: [false]]
 ]
