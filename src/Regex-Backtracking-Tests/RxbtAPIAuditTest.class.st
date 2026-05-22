@@ -49,6 +49,33 @@ RxbtAPIAuditTest >> testMatchingRangesIn [
 ]
 
 { #category : 'tests' }
+RxbtAPIAuditTest >> testNoMissingPublicMethods [
+	"Every documented public RxMatcher instance method must exist on RxbtMatcher."
+
+	| publicApi rxbtMethods missing |
+	publicApi := #( #matches: #matchesPrefix: #matchesStream:
+	                #matchesStreamPrefix: #search: #searchStream:
+	                #subexpression: #subexpressionCount
+	                #supportsSubexpressions #subexpressionNamed:
+	                #subexpressionNames #matchesIn: #matchesIn:collect:
+	                #matchesIn:do: #matchesOnStream: #matchesOnStream:collect:
+	                #matchesOnStream:do: #matchingRangesIn:
+	                #copy:replacingMatchesWith:
+	                #copy:translatingMatchesUsing:
+	                #copyStream:to:replacingMatchesWith:
+	                #copyStream:to:translatingMatchesUsing:
+	                #split:indicesDo: #groupNames #registerGroupName:at:
+	                #inputString #inputAt: #inputSize #captures #captures: )
+		             asSet.
+	rxbtMethods := RxbtMatcher methodDict keys asSet.
+	missing := publicApi reject: [ :sel | rxbtMethods includes: sel ].
+	self
+		assert: missing isEmpty
+		description:
+		'Missing methods: ' , missing asSortedCollection printString
+]
+
+{ #category : 'tests' }
 RxbtAPIAuditTest >> testRegressionFull [
     | r |
     r := RxbtMatcherTest suite run.
