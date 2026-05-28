@@ -187,6 +187,8 @@ RxbtMatcher forString: '[[:alpha:]_][[:alnum:]_]*'  "identifier"
 
 ## Architecture
 
+> Detailed internals documentation: [doc/engine-internals.md](doc/engine-internals.md)
+
 The engine uses a **continuation-passing style (CPS) closure** approach.
 
 The parser produces a `Rbt*` AST. `RxbtCompiler` walks the AST via
