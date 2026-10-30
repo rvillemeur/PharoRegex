@@ -22,9 +22,10 @@ Class {
 	#tag : 'Base'
 }
 
-{ #category : 'initialization' }
+{ #category : 'class initialization' }
 RxbtParser class >> initialize [
-    self initializeBackslashSpecials
+	self initializeBackslashSpecials.
+	self initializeBackslashConstants
 ]
 
 { #category : 'initialize' }
