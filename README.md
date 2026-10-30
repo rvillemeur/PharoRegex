@@ -14,7 +14,7 @@ flags, and several other features not available in `RxMatcher`.
 ```smalltalk
 Metacello new
     baseline: 'RegexBacktracking';
-    repository: 'github://YourOrg/pharo-regex-bt/src';
+    repository: 'github://rvillemeur/PharoRegex/src';
     load.
 ```
 
